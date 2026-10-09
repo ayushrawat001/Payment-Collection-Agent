@@ -1,0 +1,22 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Local audio recordings and generated audio
+mic_input.wav
+response.wav
+audio.wav
+*.webm
+
+# Temporary and editor files
+*.tmp
+.vscode/

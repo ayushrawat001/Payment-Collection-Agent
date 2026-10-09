@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Payment Collection Agent</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            text-align: center;
+            margin: 0;
+            padding: 50px 20px;
+        }
+
+        .container {
+            background-color: white;
+            max-width: 400px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            font-size: 26px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        #startBtn {
+            background-color: #2563eb;
+        }
+
+        #stopBtn {
+            background-color: #dc2626;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color:rgb(196, 193, 190);
+            border-radius: 15px;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Payment Collection Agent</h1>
+
+        <p>Speak your payment-related question.</p>
+
+        <p id="status">Ready to record</p>
+
+        <button id="startBtn" onclick="startRecording()">
+            Start Recording
+        </button>
+
+        <button id="stopBtn" onclick="stopRecording()" disabled>
+            Stop Recording
+        </button>
+
+        <audio id="player" controls hidden></audio>
+    </div>
+
+    <script>
+        let recorder;
+        let audioChunks = [];
+
+        const status = document.getElementById("status");
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const player = document.getElementById("player");
+
+        // Start recording
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                audioChunks = [];
+                recorder = new MediaRecorder(stream);
+
+                recorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                recorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: recorder.mimeType
+                    });
+
+                    stream.getTracks().forEach(track => track.stop());
+
+                    sendAudio(audioBlob);
+                };
+
+                recorder.start();
+
+                status.textContent = "Recording...";
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+            } catch (error) {
+                status.textContent = "Could not access microphone.";
+                console.error(error);
+            }
+        }
+
+        // Stop recording
+        function stopRecording() {
+            recorder.stop();
+
+            status.textContent = "Processing your request...";
+            stopBtn.disabled = true;
+        }
+
+        // Send audio to Python
+        async function sendAudio(audioBlob) {
+            try {
+                const formData = new FormData();
+
+                formData.append("audio", audioBlob, "recording.webm");
+
+                const response = await fetch("/api/voice", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Request failed.");
+                }
+
+                const binary = atob(result.audio_base64);
+                const bytes = Uint8Array.from(
+                    binary,
+                    character => character.charCodeAt(0)
+                );
+
+                const responseBlob = new Blob([bytes], {
+                    type: result.audio_mime_type
+                });
+
+                player.src = URL.createObjectURL(responseBlob);
+                player.hidden = true;
+
+                await player.play();
+
+                status.textContent = "Conversation completed.";
+
+            } catch (error) {
+                console.error(error);
+                status.textContent = "Error: " + error.message;
+
+            } finally {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+    </script>
+
+</body>
+</html>

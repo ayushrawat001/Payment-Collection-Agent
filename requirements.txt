@@ -1,0 +1,5 @@
+sarvamai
+python-dotenv
+fastapi
+uvicorn
+python-multipart
