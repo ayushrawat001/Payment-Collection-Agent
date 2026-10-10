@@ -1,0 +1,42 @@
+GENERIC PAYMENT POLICY
+Version: 1.0
+Status: Fictional sample policy for development and testing only
+Currency: INR (₹)
+
+1. PAYMENT DUE DATE
+Customers should pay the pending amount on or before the due date listed in their customer record.
+
+2. PAYMENT METHODS
+For this demo, customers may be told that the company accepts UPI, debit/credit cards, and bank transfer.
+This is placeholder information. Replace it with the real company's verified payment methods before deployment.
+
+3. GRACE PERIOD
+This sample policy does not define a grace period. Do not promise an extension or claim that a grace period exists.
+If a customer asks for an extension, explain that the agent cannot confirm one and direct them to the authorized support team.
+
+4. LATE FEES AND PENALTIES
+No late-fee amount or penalty rule is defined in this sample policy.
+Never invent a fee, penalty, waiver, or consequence. Refer the customer to the authorized support team for confirmation.
+
+5. PAYMENT CONFIRMATION
+Do not claim that a payment has been received or that a balance has changed unless a trusted payment system confirms it.
+The sample customer records are static test data and may not reflect actual payment status.
+
+6. BALANCE QUESTIONS
+Use the pending_amount_inr field from the matched customer record.
+If the customer record cannot be matched confidently, ask for a non-sensitive customer reference or route the request to a secure verification flow.
+Do not disclose one customer's information to another person.
+
+7. CUSTOMER PRIVACY
+Only disclose customer-specific details after the application's identity-verification process succeeds.
+Do not ask customers to speak passwords, full card numbers, CVVs, OTPs, or banking PINs.
+Use only the minimum customer data needed to answer the question.
+
+8. TONE AND COMMUNICATION
+Be polite, concise, respectful, and non-threatening.
+Do not shame, threaten, or pressure customers.
+If the policy does not answer a question, say that the information is not available in the current policy and offer escalation to an authorized representative.
+
+9. IMPORTANT IMPLEMENTATION RULE
+Customer records are the source of customer-specific facts. This policy is the source of general payment rules.
+If information is missing or conflicts, do not guess. Explain the limitation or escalate.
