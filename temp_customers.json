@@ -1,0 +1,49 @@
+{
+  "customers": [
+    {
+       "id": "CUST1001",
+       "name": "Aarav Sharma",
+       "product": "Personal Loan",
+       "outstanding": 20000,
+       "overdue": true,
+       "overdue_amt" : 12000,
+       "due_date" : "2026-10-15"
+    },
+    {
+       "id": "CUST1002",
+       "name": "Priya Verma",
+       "product": "Business Loan",
+       "outstanding": 12500,
+       "overdue": true,
+       "overdue_amt" : 8000,
+       "due_date" : "2026-10-25"
+    },
+    {
+       "id": "CUST1003",
+       "name": "Rohan Mehta",
+       "product": "Car Loan",
+       "outstanding": 7000,
+       "overdue_amt" : 0,
+       "overdue": false,
+       "due_date" : "2026-10-18"
+    },
+    {
+       "id": "CUST1004",
+       "name": "Neha Singh",
+       "product": "Personal Loan",
+       "outstanding": 15000,
+       "overdue_amt" : 6500,
+       "overdue": true,
+       "due_date" : "2026-10-14"
+    },
+    { 
+       "id": "CUST1005",
+       "name": "Karan Gupta",
+       "product": "Education Loan",
+       "outstanding": 9000,
+       "overdue": false,
+       "overdue_amt" : 0,
+       "due_date" : "2026-10-19"
+    }
+  ]
+}

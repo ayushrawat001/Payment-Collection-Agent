@@ -1,189 +1,211 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Payment Collection Agent</title>
+    <title>Payment Collection Dashboard</title>
 
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            text-align: center;
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #ffffff;
             margin: 0;
-            padding: 50px 20px;
+            padding: 5px;
         }
-
-        .container {
-            background-color: white;
-            max-width: 400px;
-            margin: auto;
-            padding: 25px;
-            border-radius: 10px;
+        .hero{
+            text-align: center;
+            margin-top: -10px;
+            margin-bottom: -5px;
         }
 
         h1 {
-            font-size: 26px;
+            margin-bottom: -15px;
+        }
+
+        p {
+            color: #666;
+        }
+
+        .cards {
+            display: flex;
+            gap: 15px;
+            margin: px 0;
+        }
+
+        .card {
+            background-color:  rgb(235, 231, 231);
+            padding: 10px;
+            flex: 1;
+            border-radius: 8px;
+        }
+
+        .card h2 {
+            margin-bottom: 0;
+        }
+
+        .customers {
+            background-color: rgb(235, 231, 231);
+            padding: 0px;
+            border-radius: 8px;
+            width:auto;
+        }
+        .customers h2{
+            padding: 5px 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            /* margin-top:; */
+        }
+
+        th, td {
+            padding: 10px 20px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            color: #666;
         }
 
         button {
-            padding: 10px 15px;
-            margin: 8px;
+            background-color: #e96920;
+            color: white;
             border: none;
+            padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-            color: white;
         }
 
-        #startBtn {
-            background-color: #2563eb;
-        }
+        @media (max-width: 700px) {
+            .cards {
+                flex-wrap: wrap;
+            }
 
-        #stopBtn {
-            background-color: #dc2626;
+            .card {
+                min-width: 120px;
+            }
         }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        #status {
-            margin: 20px 0;
-            padding: 10px 20px;
-            background-color:rgb(196, 193, 190);
-            border-radius: 15px;
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 20px;
+        @media (max-width: 450px) {
+            .customers{
+                width:fit-content;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="hero">
+        <h1>Payment Collection</h1>
+        <p>AI-powered loan collection dashboard</p>
+    </div>
 
-    <div class="container">
-        <h1>Payment Collection Agent</h1>
+    <div class="cards">
+        <div class="card">
+            <p>Total Outstanding</p>
+            <h2>₹63,500</h2>
+        </div>
 
-        <p>Speak your payment-related question.</p>
+        <div class="card">
+            <p>Total Customers</p>
+            <h2>5</h2>
+        </div>
+        
+        <div class="card">
+            <p>Total Overdue</p>
+            <h2>₹26,500</h2>
+        </div>
 
-        <p id="status">Ready to record</p>
+        <div class="card">
+            <p>Overdue Customers</p>
+            <h2>3</h2>
+        </div>
 
-        <button id="startBtn" onclick="startRecording()">
-            Start Recording
-        </button>
+        
+    </div>
 
-        <button id="stopBtn" onclick="stopRecording()" disabled>
-            Stop Recording
-        </button>
+    <div class="customers">
+        <div class="hero">
+            <h2>Customers List</h2>
+        </div>
 
-        <audio id="player" controls hidden></audio>
+        <table>
+            <tr>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Outstanding</th>
+                <th>Overdue</th>
+                <th>Action</th>
+            </tr>
+
+            <tr>
+                <td>Aarav Sharma</td>
+                <td>Personal Loan</td>
+                <td>₹20,000</td>
+                <td>₹12,000</td>
+                <td>
+                    <button onclick="makeCall('CUST1001')">
+                        Make a Call
+                    </button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Priya Verma</td>
+                <td>Business Loan</td>
+                <td>₹12,500</td>
+                <td>₹8,000</td>
+                <td>
+                    <button onclick="makeCall('CUST1002')">
+                        Make a Call
+                    </button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Rohan Mehta</td>
+                <td>Car Loan</td>
+                <td>₹7000</td>
+                <td>₹0</td>
+                <td>
+                    <button onclick="makeCall('CUST1003')">
+                        Make a Call
+                    </button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Neha Singh</td>
+                <td>Personal Loan</td>
+                <td>₹15,000</td>
+                <td>₹6,500</td>
+                <td>
+                    <button onclick="makeCall('CUST1004')">
+                        Make a Call
+                    </button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Karan Gupta</td>
+                <td>Education Loan</td>
+                <td>₹9000</td>
+                <td>₹0</td>
+                <td>
+                    <button onclick="makeCall('CUST1005')">
+                        Make a Call
+                    </button>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <script>
-        let recorder;
-        let audioChunks = [];
-
-        const status = document.getElementById("status");
-        const startBtn = document.getElementById("startBtn");
-        const stopBtn = document.getElementById("stopBtn");
-        const player = document.getElementById("player");
-
-        // Start recording
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    audio: true
-                });
-
-                audioChunks = [];
-                recorder = new MediaRecorder(stream);
-
-                recorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
-
-                recorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, {
-                        type: recorder.mimeType
-                    });
-
-                    stream.getTracks().forEach(track => track.stop());
-
-                    sendAudio(audioBlob);
-                };
-
-                recorder.start();
-
-                status.textContent = "Recording...";
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-
-            } catch (error) {
-                status.textContent = "Could not access microphone.";
-                console.error(error);
-            }
+        function makeCall(cust_id) {
+             window.location.href = "/agent.html?cust_id=" + cust_id;
         }
-
-        // Stop recording
-        function stopRecording() {
-            recorder.stop();
-
-            status.textContent = "Processing your request...";
-            stopBtn.disabled = true;
-        }
-
-        // Send audio to Python
-        async function sendAudio(audioBlob) {
-            try {
-                const formData = new FormData();
-
-                formData.append("audio", audioBlob, "recording.webm");
-
-                const response = await fetch("/api/voice", {
-                    method: "POST",
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.detail || "Request failed.");
-                }
-
-                const binary = atob(result.audio_base64);
-                const bytes = Uint8Array.from(
-                    binary,
-                    character => character.charCodeAt(0)
-                );
-
-                const responseBlob = new Blob([bytes], {
-                    type: result.audio_mime_type
-                });
-
-                player.src = URL.createObjectURL(responseBlob);
-                player.hidden = true;
-
-                await player.play();
-
-                status.textContent = "Conversation completed.";
-
-            } catch (error) {
-                console.error(error);
-                status.textContent = "Error: " + error.message;
-
-            } finally {
-                startBtn.disabled = false;
-                stopBtn.disabled = true;
-            }
-        }
-    </script>
+    </script>   
 
 </body>
 </html>

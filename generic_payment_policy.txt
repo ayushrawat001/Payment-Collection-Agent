@@ -1,4 +1,4 @@
-GENERIC PAYMENT POLICY
+GENERIC PAYMENT POLICY of ABC FINANCE
 Version: 1.0
 Status: Fictional sample policy for development and testing only
 Currency: INR (₹)

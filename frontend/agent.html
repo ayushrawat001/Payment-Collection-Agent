@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Payment Collection Agent</title>
+
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 18px;
+        margin: 5px 0 12px;
+    }
+
+    .call-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        max-width: 1200px;
+        margin: auto;
+        align-items: start;
+        height: 500px;
+    }
+
+    .panel {
+        background-color: white;
+        padding: 14px;
+        border-radius: 7px;
+        min-width: 0;
+    }
+
+    h2 {
+        font-size: 14px;
+        margin: 5px 0 10px;
+    }
+
+    h3 {
+        font-size: 12px;
+        margin: 10px 0 5px;
+    }
+
+    p {
+        font-size: 10px;
+        line-height: 1.4;
+        margin: 5px 0;
+    }
+
+    .customer-details {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 10px 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 15px;
+        align-items: center;
+    }
+
+    .customer-details h2 {
+        grid-column: 1 / -1;
+        margin: 0 0 5px;
+    }
+
+    .customer-details p {
+        margin: 0;
+    }
+
+    .buttons {
+        text-align: center;
+    }
+
+    button {
+        padding: 8px 12px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        color: white;
+        font-size: 12px;
+    }
+
+    #startBtn {
+        background-color: #2563eb;
+    }
+
+    #stopBtn {
+        background-color: #dc2626;
+    }
+
+    #backBtn {
+        background-color: #555;
+    }
+
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    #status {
+        margin: 10px 0;
+        padding: 8px;
+        background-color: #e5e5e5;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+    
+        #transcript {
+        height: 220px;
+        overflow-y: auto;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 6px;
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 8px 10px;
+        margin: 8px 0;
+        border-radius: 6px;
+        overflow-wrap: anywhere;
+    }
+
+    .agent-message {
+        background: white;
+        margin-right: auto;
+    }
+
+    .customer-message {
+        background: #dbeafe;
+        margin-left: auto;
+    }
+
+    .message p {
+        margin: 4px 0 0;
+    }
+
+
+    audio {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .script {
+        margin-bottom: 10px;
+    }
+
+    .script p {
+        margin: 3px 0;
+    }
+
+    @media (max-width: 750px) {
+        .call-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+    <h1>Payment Collection Agent</h1>
+
+    <div class="call-layout">
+
+        <!-- Left side: Agent -->
+        <div class="panel">
+
+            <div class="customer-details">
+                <h2 id="customerName">Loading customer...</h2>
+                <p id="customerId"></p>
+                <p id="customerProduct"></p>
+                <p id="customerOutstanding"></p>
+                <p id="customerOverdue"></p>
+            </div>
+
+            <p id="status">Ready to record</p>
+
+            <div class="buttons">
+                <button id="startBtn" onclick="startRecording()">
+                    Start Recording
+                </button>
+
+                <button id="stopBtn" onclick="stopRecording()" disabled>
+                    Stop Recording
+                </button>
+            </div>
+            <audio id="player" controls hidden></audio>
+            <h3>Conversation Transcript</h3>
+
+            <div id="transcript"></div>
+
+        </div>
+
+        <!-- Right side: Test scripts -->
+        <div class="panel">
+
+            <p>Try these as a customer</p>
+
+            <p>मेरे पास कौन-सा लोन है?</p>
+            <hr>
+
+            <p>मेरा कितना पैसा चुकाना बाकी है?</p>
+            <hr>
+
+            <p>मेरा कितना पेमेंट ओवरड्यू है?</p>
+            <hr>
+
+            <p>मुझे पेमेंट किस तारीख तक करना है?</p>
+            <hr>
+
+            <p>अगर मैं ड्यू डेट तक पेमेंट नहीं कर पाया तो क्या होगा?</p>
+            <hr>
+
+            <p>मेरे पास अभी पैसे नहीं हैं, मैं क्या करूँ?</p>
+            <hr>
+
+            <p>आप मुझे बार-बार कॉल करके परेशान क्यों करते हैं?</p>
+            <hr>
+
+            <p>मैं अभी व्यस्त हूँ, क्या आप मुझे बाद में कॉल कर सकते हैं?</p>
+            <hr>
+
+            <p>मैं ड्यू डेट से पहले पेमेंट कर दूँगा।</p>
+            <hr>
+
+            <p>मैं अभी पेमेंट नहीं करना चाहता, आप क्या करेंगे?</p>
+
+        </div>
+
+    </div>
+
+
+    <script>
+        let recorder;
+        let audioChunks = [];
+
+        const status = document.getElementById("status");
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const player = document.getElementById("player");
+        const responseText = document.getElementById("responseText");
+        const transcript = document.getElementById("transcript");
+
+        // Get customer ID from the URL
+        const params = new URLSearchParams(window.location.search);
+        const cust_id = params.get("cust_id");
+
+        // Fetch selected customer details
+        async function loadCustomer() {
+            try {
+                if (!cust_id) {
+                    throw new Error("No customer ID was provided.");
+                }
+
+                const response = await fetch(
+                    "/api/customers/" + encodeURIComponent(cust_id)
+                );
+
+                const customer = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        customer.detail || "Could not load customer."
+                    );
+                }
+
+                document.getElementById("customerName").textContent =
+                    customer.name;
+
+                document.getElementById("customerId").textContent =
+                    "Customer ID: " + customer.id;
+
+                document.getElementById("customerProduct").textContent =
+                    "Loan Product: " + customer.product;
+
+                document.getElementById("customerOutstanding").textContent =
+                    "Outstanding: ₹" + customer.outstanding.toLocaleString("en-IN");
+
+                document.getElementById("customerOverdue").textContent =
+                    "Overdue: ₹" + customer.overdue_amt.toLocaleString("en-IN");
+                
+
+            } catch (error) {
+                document.getElementById("customerName").textContent =
+                    "Customer could not be loaded.";
+
+                status.textContent = error.message;
+                startBtn.disabled = true;
+
+                console.error(error);
+            }
+        }
+
+        async function playOpeningGreeting() {
+            try {
+                status.textContent = "Preparing opening greeting...";
+
+                const response = await fetch(
+                    `/api/customers/${encodeURIComponent(cust_id)}/opening`
+                );
+
+               const responseText = await response.text();
+                console.log("Opening endpoint response:", responseText);
+
+                let result;
+
+                try {
+                    result = JSON.parse(responseText);
+                } catch (error) {
+                    throw new Error("Server returned a non-JSON response. Check the backend terminal.");
+                }
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Could not load greeting.");
+                }
+
+                // Show the opening message in the transcript
+                addMessage("agent", result.answer);
+
+                // Convert base64 audio to a playable Blob
+                const binary = atob(result.audio_base64);
+
+                const bytes = Uint8Array.from(
+                    binary,
+                    character => character.charCodeAt(0)
+                );
+
+                const audioBlob = new Blob([bytes], {
+                    type: result.audio_mime_type
+                });
+
+                player.src = URL.createObjectURL(audioBlob);
+                player.hidden = false;
+
+                await player.play();
+
+                status.textContent = "Greeting completed. Ready for customer.";
+
+            } catch (error) {
+                console.error(error);
+                status.textContent = "Greeting error: " + error.message;
+            }
+        }
+
+        // Start recording
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                audioChunks = [];
+                recorder = new MediaRecorder(stream);
+
+                recorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                recorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: recorder.mimeType
+                    });
+
+                    stream.getTracks().forEach(track => track.stop());
+
+                    sendAudio(audioBlob);
+                };
+
+                recorder.start();
+
+                status.textContent = "Recording...";
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+            } catch (error) {
+                status.textContent = "Could not access microphone.";
+                console.error(error);
+            }
+        }
+
+        // Stop recording
+        function stopRecording() {
+            if (recorder && recorder.state === "recording") {
+                recorder.stop();
+
+                status.textContent = "Processing your request...";
+                stopBtn.disabled = true;
+            }
+        }
+
+        function addMessage(role, text) {
+                    const message = document.createElement("div");
+                    message.className = `message ${role}-message`;
+
+                    const label = document.createElement("strong");
+                    label.textContent = role === "agent" ? "Agent" : "Customer";
+
+                    const content = document.createElement("p");
+                    content.textContent = text;
+
+                    message.append(label, content);
+                    transcript.appendChild(message);
+                    transcript.scrollTop = transcript.scrollHeight;
+                }
+
+                
+
+        // Send audio to Python
+        async function sendAudio(audioBlob) {
+            try {
+                const formData = new FormData();
+
+                formData.append("audio", audioBlob, "recording.webm");
+                formData.append("cust_id",cust_id)
+
+                const response = await fetch("/api/voice", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Request failed.");
+                }
+
+                const binary = atob(result.audio_base64);
+
+                const bytes = Uint8Array.from(
+                    binary,
+                    character => character.charCodeAt(0)
+                );
+
+                const responseBlob = new Blob([bytes], {
+                    type: result.audio_mime_type
+                });
+
+                player.src = URL.createObjectURL(responseBlob);
+                player.hidden = false;
+
+                await player.play();
+
+                status.textContent = "Response completed.";
+                addMessage("customer", result.transcript);
+                addMessage("agent", result.answer);
+
+            } catch (error) {
+                console.error(error);
+                status.textContent = "Error: " + error.message;
+
+            } finally {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+
+        // Return to dashboard
+        function goBack() {
+            window.location.href = "/";
+        }
+
+        // Load customer when the page opens
+        loadCustomer();
+        playOpeningGreeting();
+    </script>
+
+</body>
+</html>
