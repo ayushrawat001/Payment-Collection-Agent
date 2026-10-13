@@ -23,8 +23,8 @@
        "name": "Rohan Mehta",
        "product": "Car Loan",
        "outstanding": 7000,
-       "overdue_amt" : 0,
-       "overdue": false,
+       "overdue_amt" : 4000,
+       "overdue": true,
        "due_date" : "2026-10-18"
     },
     {
@@ -41,8 +41,8 @@
        "name": "Karan Gupta",
        "product": "Education Loan",
        "outstanding": 9000,
-       "overdue": false,
-       "overdue_amt" : 0,
+       "overdue": true,
+       "overdue_amt" : 3000,
        "due_date" : "2026-10-19"
     }
   ]

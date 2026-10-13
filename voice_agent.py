@@ -10,7 +10,6 @@ import datetime
 load_dotenv()           
 
 
-
 # Load generic payment policy
 with open("generic_payment_policy.txt", "r", encoding="utf-8") as file:
     payment_policy = file.read()
@@ -27,21 +26,6 @@ def create_opening_message(customer):
     return (
         f"""नमस्ते {name} जी, मैं ABC Finance से payment collection assistant बोल रही हूँ। मैं आपके {product}के भुगतान के संबंध में कॉल कर रही हूँ। आपका बकाया भुगतान {overdue_amount} रुपये है। कृपया बताइए, आप भुगतान किस तारीख तक कर पाएँगे?"""
     )
-def generate_opening_audio(customer):
-    opening_message = create_opening_message(customer)
-
-    tts_response = client.text_to_speech.convert(
-        model="bulbul:v3",
-        text=opening_message,
-        language_code="hi-IN",
-        speaker="ritu"
-    )
-
-    return {
-        "answer": opening_message,
-        "audio_base64": tts_response.audios[0],
-        "audio_mime_type": "audio/wav"
-    }
 
 def generate_opening_audio(customer):
     opening_message = create_opening_message(customer)
@@ -58,6 +42,8 @@ def generate_opening_audio(customer):
         "audio_base64": tts_response.audios[0],
         "audio_mime_type": "audio/wav"
     }
+
+
 
 
 def process_audio(audio_bytes, audio_extension=".webm",customer = None):
@@ -74,6 +60,38 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
         Customer Details:
         {customer}
         Todat Date : {datetime.date.today()} read it in YYYY-MM-DD format.
+
+        IF ques ask these or any question which indirectly means any of these give response in hindi as following instructions
+        
+        मेरे पास कौन-सा लोन है?
+        Explain the customer's loan type using their customer record.
+
+        मेरा कितना पैसा चुकाना बाकी है?
+        Tell the customer the remaining outstanding amount using their customer record.
+
+        मेरा कितना पेमेंट ओवरड्यू है?
+        Explain the overdue amount separately from the total outstanding amount.
+
+        मुझे पेमेंट किस तारीख तक करना है?
+        Tell the customer the due date from their customer record.
+
+        अगर मैं ड्यू डेट तक पेमेंट नहीं कर पाया तो क्या होगा?
+        Explain the applicable consequences according to company policy. Do not invent penalties, charges, or other consequences.
+
+        मेरे पास अभी पैसे नहीं हैं, मैं क्या करूँ?
+        Respond politely and empathetically. Explain only the payment options or assistance permitted by company policy.
+
+        आप मुझे बार-बार कॉल करके परेशान क्यों करते हैं?
+        Acknowledge the customer's concern respectfully and explain the purpose of the payment reminder without arguing or pressuring them.
+
+        मैं अभी व्यस्त हूँ, क्या आप मुझे बाद में कॉल कर सकते हैं?
+        Acknowledge the request and ask for a suitable callback date and time. Do not claim that a callback has been scheduled unless the system supports scheduling it.
+
+        मैं ड्यू डेट से पहले पेमेंट कर दूँगा।
+        Acknowledge the customer's commitment politely. Do not claim that payment has been received or verified.
+
+        मैं अभी पेमेंट नहीं करना चाहता, आप क्या करेंगे?
+        Remain calm and professional. Explain the applicable next steps according to company policy without threatening or pressuring the customer.
 
         Conversation Rules:
         - Speak politely in Hindi.
@@ -113,7 +131,6 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
             )
         
         stt_latency = time.perf_counter() - stt_start
-        print(f"STT latency: {stt_latency:.2f} seconds")
 
         customer_message = stt_response.transcript.strip()
 
@@ -134,7 +151,6 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
                 messages=messages
             )
             llm_latency = time.perf_counter() - llm_start
-            print(f"LLM latency: {llm_latency:.2f} seconds")
 
             answer = llm_response.choices[0].message.content
 
@@ -156,7 +172,6 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
             speaker="ritu"
         )
         tts_latency = time.perf_counter() - tts_start
-        print(f"TTS latency: {tts_latency:.2f} seconds")
 
         audio_base64 = tts_response.audios[0]
 
@@ -165,7 +180,12 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
             "transcript": customer_message,
             "answer": answer,
             "audio_base64": audio_base64,
-            "audio_mime_type": "audio/wav"
+            "audio_mime_type": "audio/wav",
+            "latency": {
+                "stt": stt_latency,
+                "llm": llm_latency,
+                "tts": tts_latency
+            }
         }
 
     finally:

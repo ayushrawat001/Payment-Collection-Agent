@@ -9,6 +9,10 @@ from voice_agent import process_audio
 app = FastAPI()
 CUSTOMER_FILE = Path(__file__).parent/"temp_customers.json"
 
+stt_latencies = []
+llm_latencies = []
+tts_latencies = []
+
 @app.get("/api/customers/{cust_id}/opening")
 def get_opening_message(cust_id: str):
     with open(CUSTOMER_FILE, "r", encoding="utf-8") as file:
@@ -72,8 +76,11 @@ async def voice_endpoint(
         result = process_audio(
             audio_bytes,
             audio_extension=".webm",
-            customer= customer
+            customer= customer,   
         )
+        stt_latencies.append(result["latency"]["stt"])
+        llm_latencies.append(result["latency"]["llm"])
+        tts_latencies.append(result["latency"]["tts"])
 
         return result
 
@@ -87,6 +94,23 @@ async def voice_endpoint(
             detail="Voice processing failed."
         )
 
+@app.get("/api/kpi")
+def get_kpi():
+    return {
+        "stt_avg": (
+            sum(stt_latencies) / len(stt_latencies)
+            if stt_latencies else None
+        ),
+        "llm_avg": (
+            sum(llm_latencies) / len(llm_latencies)
+            if llm_latencies else None
+        ),
+        "tts_avg": (
+            sum(tts_latencies) / len(tts_latencies)
+            if tts_latencies else None
+        ),
+        "total_responses": len(stt_latencies)
+    }
 
 app.mount(
     "/",
