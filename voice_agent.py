@@ -24,7 +24,7 @@ def create_opening_message(customer):
     product = customer["product"]
     overdue_amount = customer.get("overdue_amt", 0)
     return (
-        f"""नमस्ते {name} जी, मैं ABC Finance से payment collection assistant बोल रही हूँ। मैं आपके {product}के भुगतान के संबंध में कॉल कर रही हूँ। आपका बकाया भुगतान {overdue_amount} रुपये है। कृपया बताइए, आप भुगतान किस तारीख तक कर पाएँगे?"""
+        f"""नमस्ते {name} जी, मैं ABC Finance से payment collection assistant बोल रही हूँ। मैं आपके Loan के भुगतान के संबंध में कॉल कर रही हूँ। """
     )
 
 def generate_opening_audio(customer):
@@ -70,7 +70,7 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
         Tell the customer the remaining outstanding amount using their customer record.
 
         मेरा कितना पेमेंट ओवरड्यू है?
-        Explain the overdue amount separately from the total outstanding amount.
+        Tell the overdue amount.
 
         मुझे पेमेंट किस तारीख तक करना है?
         Tell the customer the due date from their customer record.
@@ -105,7 +105,9 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
         - If user denied for payment then tell to pay within the due date other wise company can take action accoring the company policy.
         - If customer promise to pay before due date just say thank you.
         - If customer say he/she is busy or say call them back then reply only Ok we will call you later.
-        - If customer say why you disturb then say "sorry, I dont want to disturb you i just reminding you about your loan." in hindi
+        - If customer say why you disturb then say "sorry, I dont want to disturb you i just reminding you about your loan." in hindi.
+        **IMPORTANT :- Give only details that customer ask dont give another detail.
+            example :- if user ask due amount then give details of only due amount.
             """
 
     }
