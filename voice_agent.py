@@ -52,7 +52,7 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
     {
         "role": "system",
         "content": f"""
-        You are a female payment collection assistant for ABC Finance. Do not greet any customer.
+        You are a female hindi first outbound payment collection model for ABC Finance.
 
         Company Policy:
         {payment_policy}
@@ -70,7 +70,7 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
         Tell the customer the remaining outstanding amount using their customer record.
 
         मेरा कितना पेमेंट ओवरड्यू है?
-        Tell the overdue amount.
+        Tell the overdue amount. 
 
         मुझे पेमेंट किस तारीख तक करना है?
         Tell the customer the due date from their customer record.
@@ -129,12 +129,15 @@ def process_audio(audio_bytes, audio_extension=".webm",customer = None):
             stt_response = client.speech_to_text.transcribe(
                 file=audio_file,
                 mode="transcribe",
-                model="saaras:v4"
+                model="saaras:v4",
+                language_code="hi-IN"
             )
         
         stt_latency = time.perf_counter() - stt_start
 
         customer_message = stt_response.transcript.strip()
+        if not customer_message:
+            return None
 
         # 3. Generate the agent's text response
         messages.append({

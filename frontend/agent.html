@@ -258,11 +258,11 @@
 
             <div class="buttons">
                 <button id="startBtn" onclick="startRecording()">
-                    Start Recording
+                    Start Call
                 </button>
 
                 <button id="stopBtn" onclick="stopRecording()" disabled>
-                    Stop Recording
+                    End Call
                 </button>
             </div>
             <audio id="player" controls hidden></audio>
@@ -315,14 +315,18 @@
 
 
     <script>
-        let recorder;
-        let audioChunks = [];
+        let audioSocket;
+        let audioContext;
+        let stream;
+        let source;
+        let processorNode;
+        let callId = null;
+
 
         const status = document.getElementById("status");
         const startBtn = document.getElementById("startBtn");
         const stopBtn = document.getElementById("stopBtn");
         const player = document.getElementById("player");
-        const responseText = document.getElementById("responseText");
         const transcript = document.getElementById("transcript");
 
         // Get customer ID from the URL
@@ -427,32 +431,109 @@
         }
 
         // Start recording
+
         async function startRecording() {
+            console.log("start clicked")
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
+                stream = await navigator.mediaDevices.getUserMedia({
                     audio: true
                 });
 
-                audioChunks = [];
-                recorder = new MediaRecorder(stream);
+                audioContext = new AudioContext({
+                    sampleRate: 16000
+                });
 
-                recorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
+                await audioContext.resume();
+
+                await audioContext.audioWorklet.addModule("/pcm-processor.js");
+
+                source = audioContext.createMediaStreamSource(stream);
+
+                const wsProtocol =
+                    location.protocol === "https:" ? "wss:" : "ws:";
+
+                audioSocket = new WebSocket(
+                    `${wsProtocol}//${location.host}/ws/audio?cust_id=${cust_id}`
+                );
+                
+                await new Promise((resolve, reject) => {
+                    audioSocket.onopen = resolve;
+                    audioSocket.onerror = () => {
+                        reject(new Error("WebSocket connection failed."));
+                    };
+                });
+
+                processorNode = new AudioWorkletNode(
+                    audioContext,
+                    "pcm-processor"
+                );
+
+                source.connect(processorNode);
+
+                processorNode.port.onmessage = (event) => {
+                    const pcmSamples = event.data;
+                    const pcm16 = new Int16Array(pcmSamples.length);
+
+                    for (let i = 0; i < pcmSamples.length; i++) {
+                        const sample = Math.max(-1, Math.min(1, pcmSamples[i]));
+
+                        pcm16[i] = sample < 0
+                            ? sample * 32768
+                            : sample * 32767;
+                    }
+
+                    if (audioSocket && audioSocket.readyState === WebSocket.OPEN) {
+                        audioSocket.send(pcm16.buffer);
                     }
                 };
 
-                recorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, {
-                        type: recorder.mimeType
+                
+                
+                audioSocket.onmessage = async (event) => {
+                    if (event.data === "chunk_received") {
+                        return;
+                    }
+
+                    const result = JSON.parse(event.data);
+
+                    if (result.type === "call_started") {
+                        callId = result.call_id;
+                        return;
+                    }
+
+                    if (result.type === "speech_started") {
+                        player.pause();
+                        player.currentTime = 0;
+                        return;
+                    }
+                    if (!result.transcript || !result.answer || !result.audio_base64) {
+                        return;
+                    }
+                    console.log("Customer transcript:", result.transcript);
+                    console.log("Agent response:", result.answer);
+
+                    addMessage("customer", result.transcript);
+                    addMessage("agent", result.answer);
+                    const binary = atob(result.audio_base64);
+
+                    const bytes = Uint8Array.from(
+                        binary,
+                        character => character.charCodeAt(0)
+                    );
+
+                    const responseBlob = new Blob([bytes], {
+                        type: result.audio_mime_type
                     });
 
-                    stream.getTracks().forEach(track => track.stop());
+                    player.src = URL.createObjectURL(responseBlob);
+                    await player.play();
+                };  
 
-                    sendAudio(audioBlob);
+                
+
+                const options = {
+                    mimeType: "audio/webm;codecs=opus"
                 };
-
-                recorder.start();
 
                 status.textContent = "Recording...";
                 startBtn.disabled = true;
@@ -464,14 +545,39 @@
             }
         }
 
-        // Stop recording
-        function stopRecording() {
-            if (recorder && recorder.state === "recording") {
-                recorder.stop();
 
-                status.textContent = "Processing your request...";
-                stopBtn.disabled = true;
+        // Stop recording
+        async function stopRecording() {
+            console.log("end clicked")
+            stopBtn.disabled = true;
+            status.textContent = "Ending call...";
+
+            if (processorNode) {
+                processorNode.disconnect();
             }
+
+            if (source) {
+                source.disconnect();
+            }
+
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            if (audioContext && audioContext.state !== "closed") {
+                await audioContext.close();
+            }
+
+            if (audioSocket && audioSocket.readyState === WebSocket.OPEN) {
+                audioSocket.send("end_of_audio");
+                audioSocket.close();
+            }
+
+            player.pause();
+            player.currentTime = 0;
+
+            startBtn.disabled = false;
+            status.textContent = "Call ended.";
         }
 
         function addMessage(role, text) {
@@ -489,75 +595,26 @@
                     transcript.scrollTop = transcript.scrollHeight;
                 }
 
-                
-
-        // Send audio to Python
-        async function sendAudio(audioBlob) {
-            try {
-                const formData = new FormData();
-
-                formData.append("audio", audioBlob, "recording.webm");
-                formData.append("cust_id",cust_id)
-
-                const response = await fetch("/api/voice", {
-                    method: "POST",
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.detail || "Request failed.");
-                }
-
-                const binary = atob(result.audio_base64);
-
-                const bytes = Uint8Array.from(
-                    binary,
-                    character => character.charCodeAt(0)
-                );
-
-                const responseBlob = new Blob([bytes], {
-                    type: result.audio_mime_type
-                });
-
-                player.src = URL.createObjectURL(responseBlob);
-                player.hidden = false;
-
-                await player.play();
-
-                status.textContent = "Response completed.";
-                addMessage("customer", result.transcript);
-                addMessage("agent", result.answer);
-
-            } catch (error) {
-                console.error(error);
-                status.textContent = "Error: " + error.message;
-
-            } finally {
-                startBtn.disabled = false;
-                stopBtn.disabled = true;
-            }
-        }
 
         // Return to dashboard
         function goBack() {
             window.location.href = "/";
         }
 
-        document.querySelector(".kpi").addEventListener("click", async function () {
+        stopBtn.addEventListener("click", async function () {
             const panel = document.getElementById("scriptsContent");
 
             panel.innerHTML = "<h2>Loading KPIs...</h2>";
 
             try {
-                const response = await fetch("/api/kpi");
+                const response = await fetch(`/api/kpi/${callId}`);
 
                 if (!response.ok) {
                     throw new Error("Failed to fetch KPIs");
                 }
 
                 const data = await response.json();
+                console.log(data)
 
                 panel.innerHTML = `
                     <h2>Payment Collection KPIs</h2>
@@ -599,7 +656,7 @@
         });
         // Load customer when the page opens
         loadCustomer();
-        playOpeningGreeting();
+        // playOpeningGreeting();
     </script>
 
 </body>

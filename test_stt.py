@@ -9,7 +9,7 @@ client = SarvamAI(
 )
 
 response = client.speech_to_text.transcribe(
-    file = open("", "rb"),
+    file = open("customer_utterance.wav", "rb"),
     model = "saaras:v4",
     mode = "transcribe"
 )
