@@ -3,6 +3,7 @@ import base64
 import tempfile
 import time
 from dotenv import load_dotenv
+from pathlib import Path
 from sarvamai import SarvamAI
 import datetime
 
@@ -11,40 +12,17 @@ load_dotenv()
 
 
 # Load generic payment policy
-with open("generic_payment_policy.txt", "r", encoding="utf-8") as file:
+
+
+BASE_DIR = Path(__file__).resolve().parent
+
+with open(BASE_DIR / "generic_payment_policy.txt",
+          "r", encoding="utf-8") as file:
     payment_policy = file.read()
 
 client = SarvamAI(
     api_subscription_key=os.getenv("SARVAM_API_KEY")
 )
-
-
-def create_opening_message(customer):
-    name = customer["name"]
-    product = customer["product"]
-    overdue_amount = customer.get("overdue_amt", 0)
-    return (
-        f"""नमस्ते {name} जी, मैं ABC Finance से payment collection assistant बोल रही हूँ। मैं आपके Loan के भुगतान के संबंध में कॉल कर रही हूँ। """
-    )
-
-def generate_opening_audio(customer):
-    opening_message = create_opening_message(customer)
-
-    tts_response = client.text_to_speech.convert(
-        model="bulbul:v3",
-        text=opening_message,
-        language_code="hi-IN",
-        speaker="ritu"
-    )
-
-    return {
-        "answer": opening_message,
-        "audio_base64": tts_response.audios[0],
-        "audio_mime_type": "audio/wav"
-    }
-
-
-
 
 def process_audio(audio_bytes, audio_extension=".webm",customer = None):
 

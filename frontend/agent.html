@@ -321,6 +321,7 @@
         let source;
         let processorNode;
         let callId = null;
+        const BACKEND_URL = "https://payment-collection-agent.onrender.com";
 
 
         const status = document.getElementById("status");
@@ -341,7 +342,7 @@
                 }
 
                 const response = await fetch(
-                    "/api/customers/" + encodeURIComponent(cust_id)
+                    `${BACKEND_URL}/api/customers/${encodeURIComponent(cust_id)}`
                 );
 
                 const customer = await response.json();
@@ -379,57 +380,6 @@
             }
         }
 
-        async function playOpeningGreeting() {
-            try {
-                status.textContent = "Preparing opening greeting...";
-
-                const response = await fetch(
-                    `/api/customers/${encodeURIComponent(cust_id)}/opening`
-                );
-
-               const responseText = await response.text();
-                console.log("Opening endpoint response:", responseText);
-
-                let result;
-
-                try {
-                    result = JSON.parse(responseText);
-                } catch (error) {
-                    throw new Error("Server returned a non-JSON response. Check the backend terminal.");
-                }
-
-                if (!response.ok) {
-                    throw new Error(result.detail || "Could not load greeting.");
-                }
-
-                // Show the opening message in the transcript
-                addMessage("agent", result.answer);
-
-                // Convert base64 audio to a playable Blob
-                const binary = atob(result.audio_base64);
-
-                const bytes = Uint8Array.from(
-                    binary,
-                    character => character.charCodeAt(0)
-                );
-
-                const audioBlob = new Blob([bytes], {
-                    type: result.audio_mime_type
-                });
-
-                player.src = URL.createObjectURL(audioBlob);
-                player.hidden = false;
-
-                await player.play();
-
-                status.textContent = "Greeting completed. Ready for customer.";
-
-            } catch (error) {
-                console.error(error);
-                status.textContent = "Greeting error: " + error.message;
-            }
-        }
-
         // Start recording
 
         async function startRecording() {
@@ -449,11 +399,12 @@
 
                 source = audioContext.createMediaStreamSource(stream);
 
-                const wsProtocol =
-                    location.protocol === "https:" ? "wss:" : "ws:";
+                const wsProtocol =BACKEND_URL.startsWith("https:") ? "wss:" : "ws:";
+
+                const backendHost = new URL(BACKEND_URL).host;
 
                 audioSocket = new WebSocket(
-                    `${wsProtocol}//${location.host}/ws/audio?cust_id=${cust_id}`
+                    `${wsProtocol}//${backendHost}/ws/audio?cust_id=${encodeURIComponent(cust_id)}`
                 );
                 
                 await new Promise((resolve, reject) => {
@@ -607,7 +558,7 @@
             panel.innerHTML = "<h2>Loading KPIs...</h2>";
 
             try {
-                const response = await fetch(`/api/kpi/${callId}`);
+                const response = await fetch(`${BACKEND_URL}/api/kpi/${callId}`);
 
                 if (!response.ok) {
                     throw new Error("Failed to fetch KPIs");

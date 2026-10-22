@@ -7,11 +7,10 @@ import uuid
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException,Form, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from voice_agent import generate_opening_audio
 from voice_agent import process_audio
 from silero_vad import load_silero_vad
-
 from scipy.io import wavfile
+from fastapi.middleware.cors import CORSMiddleware
 
 
 FFMPEG_PATH = r"C:\Users\AA\MediaGet2\ffmpeg.exe"
@@ -20,26 +19,22 @@ VAD_CHUNK_SIZE = 512
 model.reset_states()
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "https://YOUR-VERCEL-DOMAIN.vercel.app",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 CUSTOMER_FILE = Path(__file__).parent/"temp_customers.json"
 
 call_kpis= {}
 
-@app.get("/api/customers/{cust_id}/opening")
-def get_opening_message(cust_id: str):
-    with open(CUSTOMER_FILE, "r", encoding="utf-8") as file:
-        customers = json.load(file)
-
-    customers = customers["customers"]
-
-    customer = next(
-        (c for c in customers if c["id"] == cust_id),
-        None
-    )
-
-    if customer is None:
-        raise HTTPException(status_code=404, detail="Customer not found")
-
-    return generate_opening_audio(customer)
 
 @app.get("/api/customers/{cust_id}")
 def get_customer(cust_id:str):
@@ -127,24 +122,6 @@ def get_kpi(call_id:str):
         "total_responses": kpis["total_responses"]
     }
 
-# @app.post("/api/start-call")
-# def start_voice_call():
-#     started = start_call()
-
-#     if not started:
-#         return {"message": "Call is already active"}
-
-#     return {"message": "Call started successfully"}
-
-
-# @app.post("/api/end-call")
-# def end_voice_call():
-#     stopped = stop_call()
-
-#     if not stopped:
-#         return {"message": "No active call"}
-
-#     return {"message": "Call ended successfully"}
 
 @app.websocket("/ws/audio")
 async def audio_websocket(websocket: WebSocket, cust_id:str):
@@ -195,9 +172,10 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                 audio_tensor = torch.from_numpy(vad_chunk.copy())
                 speech_prob = model(audio_tensor, 16000).item()
 
-                if speech_prob >= 0.5:
+                if speech_prob >= 0.3:
                     if not speech_started:
                         speech_started = True
+                        print(speech_prob," audible")
                         await websocket.send_json({"type": "speech_started"})
 
                     silence_chunks = 0
@@ -207,8 +185,9 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                 if speech_started:
                         utterance_buffer.append(vad_chunk)
 
-                if speech_prob < 0.5 and speech_started:
+                if speech_prob < 0.3 and speech_started:
                     silence_chunks += 1
+                    print(speech_prob, "audible not")
 
                     if silence_chunks >= SILENCE_LIMIT:
 
