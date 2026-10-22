@@ -3,3 +3,5 @@ python-dotenv
 fastapi
 uvicorn
 python-multipart
+torch
+silero-vad
