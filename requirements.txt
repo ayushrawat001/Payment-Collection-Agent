@@ -1,8 +1,11 @@
-sarvamai
-python-dotenv
+
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
-torch
-silero-vad
+python-dotenv
+sarvamai
 numpy
+scipy
+silero-vad
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.13.0+cpu
