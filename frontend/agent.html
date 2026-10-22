@@ -307,8 +307,6 @@
             <p>मैं अभी पेमेंट नहीं करना चाहता, आप क्या करेंगे?</p>
             <hr>
 
-            <button class="kpi buttons">Generate KPI</button>
-
         </div>
 
     </div>
@@ -352,6 +350,8 @@
                         customer.detail || "Could not load customer."
                     );
                 }
+                
+                
 
                 document.getElementById("customerName").textContent =
                     customer.name;
@@ -383,10 +383,13 @@
         // Start recording
 
         async function startRecording() {
-            console.log("start clicked")
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
-                    audio: true
+                    audio:{
+                        echoCancellation : true,
+                        noiseSuppression : true,
+                        autoGainControl : true
+                    }
                 });
 
                 audioContext = new AudioContext({
@@ -457,14 +460,14 @@
                         player.currentTime = 0;
                         return;
                     }
-                    if (!result.transcript || !result.answer || !result.audio_base64) {
+                    if (!result.answer || !result.audio_base64) {
                         return;
                     }
-                    console.log("Customer transcript:", result.transcript);
-                    console.log("Agent response:", result.answer);
-
-                    addMessage("customer", result.transcript);
+                    if (result.transcript) {
+                        addMessage("customer", result.transcript);
+                    }
                     addMessage("agent", result.answer);
+                    
                     const binary = atob(result.audio_base64);
 
                     const bytes = Uint8Array.from(

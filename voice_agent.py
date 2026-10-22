@@ -24,6 +24,28 @@ client = SarvamAI(
     api_subscription_key=os.getenv("SARVAM_API_KEY")
 )
 
+def create_opening_message(customer):
+        name = customer["name"]
+        return (
+            f"""नमस्ते {name} जी, मैं ABC Finance से payment collection assistant बोल रही हूँ। मैं आपके Loan के भुगतान के संबंध में कॉल कर रही हूँ। """
+        )
+
+def generate_opening_audio(customer):
+        opening_message = create_opening_message(customer)
+
+        tts_response = client.text_to_speech.convert(
+            model="bulbul:v3",
+            text=opening_message,
+            language_code="hi-IN",
+            speaker="ritu"
+        )
+
+        return {
+                "answer": opening_message,
+                "audio_base64": tts_response.audios[0],
+                "audio_mime_type": "audio/wav"
+            }
+
 def process_audio(audio_bytes, audio_extension=".webm",customer = None):
 
     messages = [

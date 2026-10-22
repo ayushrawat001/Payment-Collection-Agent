@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException,Form, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from voice_agent import process_audio
+from voice_agent import process_audio,generate_opening_audio
 from silero_vad import load_silero_vad
 from scipy.io import wavfile
 from fastapi.middleware.cors import CORSMiddleware
@@ -146,6 +146,16 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
     utterance_buffer = []
 
     try:
+        opening_result = await asyncio.to_thread(
+            generate_opening_audio,
+            customer
+        )
+
+        await websocket.send_json({
+            "type": "agent_message",
+            **opening_result
+        })
+
         while True:
             message = await websocket.receive()
 
@@ -172,7 +182,7 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                 audio_tensor = torch.from_numpy(vad_chunk.copy())
                 speech_prob = model(audio_tensor, 16000).item()
 
-                if speech_prob >= 0.3:
+                if speech_prob >= 0.5:
                     if not speech_started:
                         speech_started = True
                         print(speech_prob," audible")
