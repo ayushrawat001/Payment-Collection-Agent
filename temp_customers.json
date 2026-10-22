@@ -7,7 +7,7 @@
        "outstanding": 20000,
        "overdue": true,
        "overdue_amt" : 12000,
-       "due_date" : "2026-10-15"
+       "due_date" : "2026-11-15"
     },
     {
        "id": "CUST1002",
@@ -16,7 +16,7 @@
        "outstanding": 12500,
        "overdue": true,
        "overdue_amt" : 8000,
-       "due_date" : "2026-10-25"
+       "due_date" : "2026-11-25"
     },
     {
        "id": "CUST1003",
@@ -25,7 +25,7 @@
        "outstanding": 7000,
        "overdue_amt" : 4000,
        "overdue": true,
-       "due_date" : "2026-10-18"
+       "due_date" : "2026-11-18"
     },
     {
        "id": "CUST1004",
@@ -34,7 +34,7 @@
        "outstanding": 15000,
        "overdue_amt" : 6500,
        "overdue": true,
-       "due_date" : "2026-10-14"
+       "due_date" : "2026-11-14"
     },
     { 
        "id": "CUST1005",
@@ -43,7 +43,7 @@
        "outstanding": 9000,
        "overdue": true,
        "overdue_amt" : 3000,
-       "due_date" : "2026-10-19"
+       "due_date" : "2026-11-19"
     }
   ]
 }
