@@ -455,6 +455,11 @@
                         return;
                     }
 
+                    if (result.type === "customer_transcript") {
+                        addMessage("customer", result.transcript);
+                        return;
+                    }
+
                     if (result.type === "speech_started") {
                         player.pause();
                         player.currentTime = 0;
@@ -467,7 +472,7 @@
                         addMessage("customer", result.transcript);
                     }
                     addMessage("agent", result.answer);
-                    
+
                     const binary = atob(result.audio_base64);
 
                     const bytes = Uint8Array.from(
@@ -587,12 +592,6 @@
                         <h3>Average TTS Latency</h3>
                         <p>${data.tts_avg !== null ? data.tts_avg.toFixed(2) + " seconds" : "N/A"}</p>
                     </div>
-
-                    <div class="script">
-                        <h3>Total Responses Measured</h3>
-                        <p>${data.total_responses}</p>
-                    </div>
-
                     <button id="backToScripts">Back to Scripts</button>
                 `;
 

@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException,Form, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from voice_agent import process_audio,generate_opening_audio
+from voice_agent import process_audio,generate_opening_audio,transcribe_audio,classify_identity,generate_speech_response
 from silero_vad import load_silero_vad
 from scipy.io import wavfile
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,11 +25,13 @@ app.add_middleware(
         "http://127.0.0.1:8000",
         "http://localhost:8000",
         "https://payment-collection-agent.vercel.app",
+        "https://payment-collection-agent-10l8lzzmj-ayushrawat001s-projects.vercel.app"
     ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 CUSTOMER_FILE = Path(__file__).parent/"temp_customers.json"
 
@@ -119,7 +121,6 @@ def get_kpi(call_id:str):
             sum(kpis["tts"]) / len(kpis["tts"])
             if kpis["tts"] else None
         ),
-        "total_responses": kpis["total_responses"]
     }
 
 
@@ -139,6 +140,8 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
         "call_id": call_id
     })
     customer = get_customer(cust_id)
+    identity_verified = False
+    identity_uncertain_count = 0
     audio_buffer = np.array([], dtype=np.float32)
     speech_started = False
     silence_chunks = 0
@@ -195,13 +198,16 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                 if speech_started:
                         utterance_buffer.append(vad_chunk)
 
-                if speech_prob < 0.3 and speech_started:
+                if speech_prob < 0.5 and speech_started:
                     silence_chunks += 1
                     print(speech_prob, "audible not")
 
                     if silence_chunks >= SILENCE_LIMIT:
 
                         utterance_audio = np.concatenate(utterance_buffer)
+                        utterance_buffer = []
+                        speech_started = False
+                        silence_chunks = 0
                         # Convert float32 audio to int16 PCM
                         audio_int16 = (np.clip(utterance_audio, -1, 1) * 32767).astype(np.int16)
 
@@ -213,12 +219,108 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                         wav_bytes = wav_buffer.getvalue()
                         wav_buffer.close()
 
+                        
+                        if not identity_verified:
+                            customer_message = await asyncio.to_thread(
+                                transcribe_audio,
+                                wav_bytes,
+                                ".wav"
+                            )
+
+                            if not customer_message:
+                                utterance_buffer = []
+                                speech_started = False
+                                silence_chunks = 0
+                                continue
+
+                            identity_result = await asyncio.to_thread(
+                                classify_identity,
+                                customer_message
+                            )
+
+                            await websocket.send_json({
+                                "type": "customer_transcript",
+                                "transcript": customer_message
+                            })
+                            print("Identity result:", identity_result)
+
+                            if identity_result == "true":
+        
+                                identity_verified = True
+                                opening_text = f"""धन्यवाद जी, मैं आपके {customer["product"]} के बकाया भुगतान के संबंध में जानकारी देने के लिए कॉल कर रही हूँ। कृपया बताइए कि आप अपना {customer["overdue_amt"]} कब तक चुका देंगे? """
+                                opening_result = await asyncio.to_thread(
+                                    generate_speech_response,
+                                    opening_text
+                                )
+
+                                await websocket.send_json({
+                                    "type": "agent_message",
+                                    **opening_result
+                                })
+
+                                utterance_buffer = []
+                                speech_started = False
+                                silence_chunks = 0
+
+
+                            elif identity_result == "false":
+                                closing_text = "कोई बात नहीं जी, असुविधा के लिए क्षमा चाहती हूँ। आपका दिन शुभ हो।"
+
+                                closing_result = await asyncio.to_thread(
+                                    generate_speech_response,
+                                    closing_text
+                                )
+
+                                await websocket.send_json({
+                                    "type": "agent_message",
+                                    **closing_result
+                                })
+                                break
+
+                            else:
+                                identity_uncertain_count += 1
+
+                                if identity_uncertain_count == 1:
+                                    opening_result = await asyncio.to_thread(
+                                        generate_opening_audio,
+                                        customer
+                                    )
+
+                                    await websocket.send_json({
+                                        "type": "agent_message",
+                                        **opening_result
+                                    })
+                                else:
+                                    retry_text = (
+                                        f"माफ़ कीजिए, क्या आप {customer.get('name', 'ग्राहक')} "
+                                        "बोल रहे हैं? कृपया हाँ या नहीं में बताइए।"
+                                    )
+
+
+                                    closing_result = await asyncio.to_thread(
+                                        generate_speech_response,
+                                        retry_text
+                                    )
+
+                                    await websocket.send_json({
+                                        "type": "agent_message",
+                                        **closing_result
+                                    })
+                                    break
+                                utterance_buffer = []
+                                speech_started = False
+                                silence_chunks = 0
+
+                            continue
+
+
                         result = await asyncio.to_thread(
                             process_audio,
                             wav_bytes,
                             audio_extension=".wav",
                             customer=customer
                         )
+
                         if result is not None:
                             call_kpis[call_id]["stt"].append(result["latency"]["stt"])
                             call_kpis[call_id]["llm"].append(result["latency"]["llm"])
