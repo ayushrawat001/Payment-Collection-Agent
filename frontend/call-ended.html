@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css">
+    <link rel="stylesheet" href="css/variable.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/call-ended.css">
+
+    <title>Document</title>
+</head>
+<body>
+        <nav class="app-navbar">
+
+            <!-- BRAND -->
+            <div class="brand">
+                <div class="brand-logo">✦</div>
+
+                <div>
+                    <div class="brand-name">Payment Collection</div>
+                    <div class="brand-subtitle">AI voice agent</div>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <div class="nav-links">
+
+                <a href="/" class="nav-link ">
+                    Overview
+                </a>
+
+                <a href="#" class="nav-link active">
+                    Customers
+                </a>
+
+                <a href="#" class="nav-link">
+                    Call history
+                </a>
+
+                <a href="#" class="nav-link">
+                    Reports
+                </a>
+
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="nav-right">
+
+                <div class="agent-status">
+                    <span class="status-dot"></span>
+                    Agent online
+                </div>
+
+                <div class="profile-avatar">
+                    AD
+                </div>
+
+            </div>
+
+        </nav>
+
+<!-- PAGE TOOLBAR -->
+<section class="page-toolbar">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="/">
+            <i class="fa-solid fa-arrow-left"></i>
+            All customers
+        </a>
+
+        <span>/</span>
+
+        <span id="customerBreadcrumb">Loading...</span>
+    </div>
+
+    <!-- Call Ended Status -->
+    <div class="call-ended-status">
+        <span class="ended-status-dot"></span>
+        Call ended
+    </div>
+
+</section>
+
+<main class="call-ended-layout">
+
+<!-- We'll add the three-column content here -->
+
+<!-- LEFT COLUMN -->
+<aside class="ended-left-panel">
+
+    <!-- CUSTOMER INFORMATION -->
+    <div class="card ended-customer-card">
+
+        <div class="customer-profile">
+
+            <div class="customer-avatar" id="customerAvatar">
+                AS
+            </div>
+
+            <div>
+                <h3 id="customerName">Aarav Sharma</h3>
+                <p id="customerId">CUST1001 · Personal Loan</p>
+            </div>
+
+        </div>
+
+        <div class="ended-amount-grid">
+
+            <div class="ended-amount-box">
+                <span>OUTSTANDING</span>
+                <h3 id="customerOutstanding">₹20,000</h3>
+            </div>
+
+            <div class="ended-amount-box overdue-box">
+                <span>OVERDUE</span>
+                <h3 id="customerOverdue">₹12,000</h3>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- CALL OUTCOME -->
+    <div class="card outcome-card">
+
+        <h3>Call outcome</h3>
+
+        <p class="outcome-description">
+            The agent picked this from the conversation.
+            Change it if needed.
+        </p>
+
+        <!-- OUTCOME OPTIONS -->
+        <div class="outcome-options">
+
+            <label class="outcome-option selected">
+                <input type="radio"
+                       name="callOutcome"
+                       value="promise_to_pay"
+                       checked>
+
+                <span class="custom-radio"></span>
+                <span>Promise to pay</span>
+            </label>
+
+            <label class="outcome-option">
+                <input type="radio"
+                       name="callOutcome"
+                       value="callback_requested">
+
+                <span class="custom-radio"></span>
+                <span>Callback requested</span>
+            </label>
+
+            <label class="outcome-option">
+                <input type="radio"
+                       name="callOutcome"
+                       value="paid_during_call">
+
+                <span class="custom-radio"></span>
+                <span>Paid during the call</span>
+            </label>
+
+            <label class="outcome-option">
+                <input type="radio"
+                       name="callOutcome"
+                       value="refused_to_pay">
+
+                <span class="custom-radio"></span>
+                <span>Refused to pay</span>
+            </label>
+
+            <label class="outcome-option">
+                <input type="radio"
+                       name="callOutcome"
+                       value="no_answer">
+
+                <span class="custom-radio"></span>
+                <span>No answer</span>
+            </label>
+
+        </div>
+
+
+        <!-- PROMISE DETAILS -->
+        <div class="promise-details">
+
+            <div class="promise-field">
+                <label for="promiseDate">Promise date</label>
+                <input type="date" id="promiseDate">
+            </div>
+
+            <div class="promise-field">
+                <label for="promiseAmount">Amount</label>
+                <input type="number"
+                       id="promiseAmount"
+                       placeholder="₹12,000">
+            </div>
+
+        </div>
+
+
+        <!-- SAVE OUTCOME -->
+        <button type="button"
+                class="save-outcome-btn"
+                id="saveOutcomeBtn">
+
+            <i class="fa-solid fa-check"></i>
+            Save outcome
+
+        </button>
+
+    </div>
+
+</aside>
+
+
+<!-- CENTRE COLUMN -->
+<section class="ended-center-panel">
+
+    <!-- CALL RECORDING -->
+    <div class="card recording-card">
+
+        <div class="recording-header">
+
+            <div>
+                <span class="section-label">CALL DURATION</span>
+                <h2 id="callDuration">03:42</h2>
+                <p id="callMessageCount">6 messages · Hindi</p>
+            </div>
+
+            <div class="recording-actions">
+
+                <button type="button" class="btn btn-secondary" id="callAgainBtn">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    Call again
+                </button>
+
+                <button type="button" class="next-customer-btn" id="nextCustomerBtn">
+                    Call next: Priya Verma
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- AUDIO PLAYER -->
+        <div class="audio-player">
+
+            <button type="button" class="audio-play-btn" id="audioPlayBtn">
+                <i class="fa-solid fa-play"></i>
+            </button>
+
+            <div class="audio-waveform" id="audioWaveform">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+            </div>
+
+            <span class="audio-time" id="audioCurrentTime">00:00</span>
+            <span class="audio-separator">/</span>
+            <span class="audio-time" id="audioTotalTime">03:42</span>
+
+            <button type="button" class="audio-download-btn" id="audioDownloadBtn">
+                <i class="fa-solid fa-download"></i>
+            </button>
+
+        </div>
+
+        <audio id="callRecording" preload="metadata"></audio>
+
+    </div>
+
+
+    <!-- CALL SUMMARY -->
+    <div class="card call-summary-card">
+
+        <div class="summary-header">
+            <div>
+                <h3>Call summary</h3>
+                <p>Written by the agent</p>
+            </div>
+        </div>
+
+        <ul class="summary-list" id="callSummary">
+
+            <li>
+                Confirmed the personal loan: ₹20,000 outstanding,
+                of which ₹12,000 is overdue.
+            </li>
+
+            <li>
+                Said he has no money right now.
+            </li>
+
+            <li>
+                Promised to pay by 20 November.
+            </li>
+
+        </ul>
+
+        <!-- NEXT STEP -->
+        <div class="next-step-box">
+
+            <div class="next-step-content">
+                <i class="fa-regular fa-calendar"></i>
+
+                <div>
+                    <strong>Next step: send a payment reminder on 19 November</strong>
+                </div>
+            </div>
+
+            <button type="button" class="reminder-btn" id="scheduleReminderBtn">
+                Schedule reminder
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- FULL TRANSCRIPT -->
+    <div class="card ended-transcript-card">
+
+        <div class="ended-transcript-header">
+
+            <h3>Transcript</h3>
+
+            <button type="button" class="btn btn-secondary" id="downloadFullTranscriptBtn">
+                <i class="fa-solid fa-download"></i>
+                Download
+            </button>
+
+        </div>
+
+        <div class="ended-transcript-body" id="endedTranscript">
+
+            <div class="ended-transcript-message">
+                <div class="ended-message-customer">
+                    <strong>Agent</strong>
+                    <span class="message-time">00:27</span>
+                </div>
+                <p>
+                    मैं आपको हमारी पिछली बातचीत के संबंध में कॉल कर रही हूँ।
+                    क्या आप मुझे बता सकते हैं कि आप पेमेंट कब करेंगे?
+                </p>
+            </div>
+
+            <div class="ended-transcript-message">
+                <div class="ended-message-customer">
+                    <strong>Aarav</strong>
+                    <span class="message-time">00:38</span>
+                </div>
+                <p>
+                    मैं 20 तारीख तक पेमेंट कर दूँगा।
+                </p>
+            </div>
+
+        </div>
+
+        <button type="button" class="show-full-transcript-btn" id="showFullTranscriptBtn">
+            Show full transcript (6 messages)
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- RIGHT COLUMN -->
+<aside class="ended-right-panel">
+
+    <div class="card performance-card">
+
+        <!-- HEADER -->
+        <div class="performance-header">
+            <h3>Call performance</h3>
+            <p>Average time the agent took to answer, per reply</p>
+        </div>
+
+        <!-- AVERAGE RESPONSE TIME -->
+        <div class="average-response">
+            <span>Average response time</span>
+
+            <h2 id="averageResponseTime">
+                2.24<small>s</small>
+            </h2>
+        </div>
+
+        <!-- LATENCY BREAKDOWN BAR -->
+        <div class="latency-bar">
+            <span class="latency-stt"></span>
+            <span class="latency-llm"></span>
+            <span class="latency-tts"></span>
+        </div>
+
+        <!-- LATENCY DETAILS -->
+        <div class="latency-details">
+
+            <!-- SPEECH TO TEXT -->
+            <div class="latency-item">
+
+                <span class="latency-dot stt-dot"></span>
+
+                <div class="latency-info">
+                    <strong>Speech to text</strong>
+                    <small>STT · hearing the customer</small>
+                </div>
+
+                <span class="latency-value">0.48 s</span>
+
+            </div>
+
+            <!-- LANGUAGE MODEL -->
+            <div class="latency-item">
+
+                <span class="latency-dot llm-dot"></span>
+
+                <div class="latency-info">
+                    <strong>Language model</strong>
+                    <small>LLM · writing the reply</small>
+                </div>
+
+                <span class="latency-value">1.12 s</span>
+
+            </div>
+
+            <!-- TEXT TO SPEECH -->
+            <div class="latency-item">
+
+                <span class="latency-dot tts-dot"></span>
+
+                <div class="latency-info">
+                    <strong>Text to speech</strong>
+                    <small>TTS · speaking the reply</small>
+                </div>
+
+                <span class="latency-value">0.64 s</span>
+
+            </div>
+
+        </div>
+
+        <!-- EXPLANATION -->
+        <p class="performance-note">
+            The language model takes half of every reply.
+            Streaming its answer into speech would shorten
+            the pause the customer hears.
+        </p>
+
+        <!-- BACK BUTTON -->
+        <button type="button"
+                class="back-to-scripts-btn"
+                id="backToScriptsBtn">
+
+            Back to test scripts
+
+        </button>
+
+    </div>
+
+</aside>
+
+
+</main>
+
+
+</body>
+</html>

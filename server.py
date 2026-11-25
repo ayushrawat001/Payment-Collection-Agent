@@ -23,6 +23,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:8000",
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
         "http://localhost:8000",
         "https://payment-collection-agent.vercel.app",
         "https://payment-collection-agent-10l8lzzmj-ayushrawat001s-projects.vercel.app"
@@ -51,6 +53,34 @@ def get_customer(cust_id:str):
         status_code=404,
         detail="Customer Not Found"
     )
+
+@app.get("/api/customers")
+def get_all_customers():
+    try:
+        with open(CUSTOMER_FILE,"r", encoding="utf-8") as file:
+            data = json.load(file)
+        customers = data.get("customers",[])
+        if not isinstance(customers, list):
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid customer data format."
+            )
+
+        return {
+            "customers": customers,
+            "total": len(customers)
+        }
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500,
+            detail="Customer data file not found."
+        )
+    
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=500,
+            detail="Customer data file contains invalid JSON."
+        )  
 
 @app.post("/api/voice")
 async def voice_endpoint(

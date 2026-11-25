@@ -3,273 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+    >
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"
+    >
+    <link rel="stylesheet" href="css/variable.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <script src="js/dashboard.js" defer></script>
     <title>Payment Collection Dashboard</title>
-
-    
-<style>
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: 'Times New Roman', Times, serif;
-        background-color: #ffffff;
-        margin: 0;
-        padding: 20px;
-        font-size: 18px;
-    }
-
-    .hero {
-        text-align: center;
-        margin-top: 0;
-        margin-bottom: 25px;
-    }
-
-    h1 {
-        font-size: 36px;
-        margin: 0 0 12px;
-    }
-
-    p {
-        color: #666;
-        font-size: 18px;
-        line-height: 1.5;
-    }
-
-    .cards {
-        display: flex;
-        gap: 20px;
-        margin: 20px 0;
-    }
-
-    .card {
-        background-color: rgb(235, 231, 231);
-        padding: 20px;
-        flex: 1;
-        min-width: 0;
-        border-radius: 10px;
-    }
-
-    .card h2 {
-        font-size: 24px;
-        margin: 0 0 10px;
-    }
-
-    .card p {
-        margin: 8px 0;
-    }
-
-    .customers {
-        background-color: rgb(235, 231, 231);
-        padding: 10px;
-        border-radius: 10px;
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .customers h2 {
-        font-size: 26px;
-        padding: 5px 10px;
-        margin: 10px 0;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 650px;
-    }
-
-    th,
-    td {
-        padding: 14px 18px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-        font-size: 17px;
-    }
-
-    th {
-        color: #555;
-        font-size: 17px;
-    }
-
-    button {
-        background-color: #e96920;
-        color: white;
-        border: none;
-        padding: 10px 16px;
-        font-size: 16px;
-        font-family: inherit;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #d85b16;
-    }
-
-    @media (max-width: 700px) {
-        body {
-            padding: 12px;
-            font-size: 16px;
-        }
-
-        h1 {
-            font-size: 29px;
-        }
-
-        .cards {
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .card {
-            flex: 1 1 220px;
-            padding: 16px;
-        }
-
-        .card h2 {
-            font-size: 21px;
-        }
-
-        .customers h2 {
-            font-size: 23px;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            font-size: 16px;
-        }
-    }
-
-    @media (max-width: 450px) {
-        .card {
-            flex: 1 1 100%;
-        }
-
-        h1 {
-            font-size: 26px;
-        }
-
-        .hero {
-            margin-bottom: 20px;
-        }
-    }
-</style>
-
 </head>
 
 <body>
-    <div class="hero">
-        <h1>Payment Collection</h1>
-        <p>AI-powered loan collection dashboard</p>
+    <!-- NAVBAR -->
+<nav class="app-navbar">
+
+    <!-- BRAND -->
+    <div class="brand">
+        <div class="brand-logo">✦</div>
+
+        <div>
+            <div class="brand-name">Payment Collection</div>
+            <div class="brand-subtitle">AI voice agent</div>
+        </div>
     </div>
 
-    <div class="cards">
-        <div class="card">
-            <p>Total Outstanding</p>
-            <h2>₹63,500</h2>
-        </div>
+    <!-- NAVIGATION -->
+    <div class="nav-links">
 
-        <div class="card">
-            <p>Total Customers</p>
-            <h2>5</h2>
-        </div>
-        
-        <div class="card">
-            <p>Total Overdue</p>
-            <h2>₹33,500</h2>
-        </div>
+        <a href="/" class="nav-link active">
+            Overview
+        </a>
 
-        <div class="card">
-            <p>Overdue Customers</p>
-            <h2>5</h2>
-        </div>
+        <a href="#" class="nav-link">
+            Customers
+        </a>
 
-        
+        <a href="#" class="nav-link">
+            Call history
+        </a>
+
+        <a href="#" class="nav-link">
+            Reports
+        </a>
+
     </div>
 
-    <div class="customers">
-        <div class="hero">
-            <h2>Customers List</h2>
+    <!-- RIGHT SIDE -->
+    <div class="nav-right">
+
+        <div class="agent-status">
+            <span class="status-dot"></span>
+            Agent online
         </div>
 
-        <table>
-            <tr>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Outstanding</th>
-                <th>Overdue</th>
-                <th>Action</th>
-            </tr>
+        <div class="profile-avatar">
+            AD
+        </div>
 
-            <tr>
-                <td>Aarav Sharma</td>
-                <td>Personal Loan</td>
-                <td>₹20,000</td>
-                <td>₹12,000</td>
-                <td>
-                    <button onclick="makeCall('CUST1001')">
-                        Make a Call
-                    </button>
-                </td>
-            </tr>
+    </div>
 
-            <tr>
-                <td>Priya Verma</td>
-                <td>Business Loan</td>
-                <td>₹12,500</td>
-                <td>₹8,000</td>
-                <td>
-                    <button onclick="makeCall('CUST1002')">
-                        Make a Call
-                    </button>
-                </td>
-            </tr>
+</nav>
 
-            <tr>
-                <td>Rohan Mehta</td>
-                <td>Car Loan</td>
-                <td>₹7000</td>
-                <td>₹4000</td>
-                <td>
-                    <button onclick="makeCall('CUST1003')">
-                        Make a Call
-                    </button>
-                </td>
-            </tr>
 
-            <tr>
-                <td>Neha Singh</td>
-                <td>Personal Loan</td>
-                <td>₹15,000</td>
-                <td>₹6,500</td>
-                <td>
-                    <button onclick="makeCall('CUST1004')">
-                        Make a Call
-                    </button>
-                </td>
-            </tr>
+<!-- DASHBOARD HERO -->
+<section class="dashboard-hero">
 
-            <tr>
-                <td>Karan Gupta</td>
-                <td>Education Loan</td>
-                <td>₹9000</td>
-                <td>₹3000</td>
-                <td>
-                    <button onclick="makeCall('CUST1005')">
-                        Make a Call
-                    </button>
-                </td>
-            </tr>
+    <div class="hero-content">
+
+        <!-- LEFT CONTENT -->
+        <div class="hero-info">
+
+            <p class="hero-date">
+                
+            </p>
+
+            <h1 class="hero-title">
+                Collections overview
+            </h1>
+
+            <p class="hero-description">
+                Your AI agent calls customers in Hindi,
+                answers their loan questions and records
+                payment commitments.
+            </p>
+
+        </div>
+
+        <!-- RIGHT ACTIONS -->
+        <div class="hero-actions">
+
+            <button class="btn btn-secondary">
+                <i class="fa-solid fa-upload"></i>
+                Upload customers
+            </button>
+
+            <button class="btn btn-hero">
+                <i class="fa-solid fa-phone"></i>
+                Call all overdue
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- DASHBOARD STATISTICS -->
+
+<main class="dashboard-main">
+
+    <section class="stats-grid">
+
+        <!-- CARD 1: TOTAL OUTSTANDING -->
+
+        <article class="stat-card">
+
+            <div class="stat-header">
+                <p class="stat-label">Total Outstanding</p>
+                <div class="stat-icon">
+                    <i class="fa-solid fa-wallet" style="color: #0f766e;"></i>
+                </div>
+            </div>
+
+            <h2 class="stat-value" id="totalOutstanding">
+                Loading...
+            </h2>
+
+            <p class="stat-note">
+                Across all customer loans
+            </p>
+
+        </article>
+
+
+        <!-- CARD 2: TOTAL OVERDUE -->
+
+        <article class="stat-card">
+
+            <div class="stat-header">
+                <p class="stat-label">Total Overdue</p>
+                <div class="stat-icon warning">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #c46a1a;"></i>
+                </div>
+                
+            </div>
+
+            <h2 class="stat-value warning-text" id="totalOverdue">
+                Loading...
+            </h2>
+
+            <p class="stat-note">
+                Amount currently overdue
+            </p>
+
+        </article>
+
+
+        <!-- CARD 3: TOTAL CUSTOMERS -->
+
+        <article class="stat-card">
+
+            <div class="stat-header">
+                <p class="stat-label">Total Customers</p>
+                <div class="stat-icon">
+                    <i class="fa-solid fa-user-group" style="color: #0f766e;"></i>
+                </div>
+                
+            </div>
+
+            <h2 class="stat-value" id="totalCustomers">
+                Loading...
+            </h2>
+
+            <p class="stat-note">
+                Total customer records
+            </p>
+
+        </article>
+
+
+        <!-- CARD 4: OVERDUE CUSTOMERS -->
+
+        <article class="stat-card">
+
+            <div class="stat-header">
+                <p class="stat-label">Overdue Customers</p>
+                <div class="stat-icon warning">
+                    <i class="fa-solid fa-clock" style="color: #c46a1a;"></i>
+                </div>
+            </div>
+
+            <h2 class="stat-value" id="overdueCustomers">
+                Loading...
+            </h2>
+
+            <p class="stat-note">
+                Customers marked overdue
+            </p>
+
+        </article>
+
+    </section>
+
+    <p id="dashboardLoadStatus"
+       class="dashboard-load-status"
+       role="status"
+       aria-live="polite">
+    </p>
+
+
+ 
+
+
+<!-- CUSTOMER SECTION -->
+
+<section class="customer-section card">
+
+    <!-- HEADER: TITLE + SEARCH + EXPORT -->
+    <div class="customer-section-header">
+
+        <div class="customer-heading">
+
+            <h2 class="section-title">
+                Customers
+
+                <span id="customerTotalBadge" class="count-badge">
+                    0
+                </span>
+            </h2>
+
+            <p class="section-description">
+                Sorted by overdue amount. Pick a customer to start an agent call.
+            </p>
+
+        </div>
+
+
+        <div class="customer-header-actions">
+
+            <!-- SEARCH -->
+            <div class="search-box">
+
+                <span class="search-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+
+                <input
+                    type="search"
+                    id="customerSearch"
+                    placeholder="Search name or customer ID"
+                >
+
+            </div>
+
+
+            <!-- EXPORT -->
+            <button
+                type="button"
+                id="exportCustomersBtn"
+                class="btn btn-secondary export-btn"
+            >
+                <i class="fa-solid fa-download" aria-hidden="true"></i>
+                    Export
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRODUCT FILTER CHIPS -->
+    <div
+        class="product-filters"
+        id="productFilters"
+        aria-label="Filter customers by loan product"
+    >
+        <!-- JavaScript will generate filters here -->
+    </div>
+
+
+    <!-- CUSTOMER TABLE -->
+    <div class="table-wrapper">
+
+        <table class="customer-table">
+
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Outstanding</th>
+                    <th>Overdue</th>
+                    <th>Last outcome</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+
+            <tbody id="customersTableBody">
+
+                <tr>
+                    <td colspan="6" class="table-message">
+                        Loading customers...
+                    </td>
+                </tr>
+
+            </tbody>
+
         </table>
+
     </div>
 
-    <script>
-        function makeCall(cust_id) {
-             window.location.href = "/agent.html?cust_id=" + cust_id;
-        }
-    </script>   
 
+    <!-- FOOTER -->
+    <div class="table-footer">
+
+        <p id="customerCount">
+            Loading customers...
+        </p>
+
+        <p class="table-footer-note">
+            Balances update after every call
+        </p>
+
+    </div>
+
+</section>
+
+<br>
+<!-- DASHBOARD BOTTOM SECTION -->
+
+<section class="dashboard-bottom-grid">
+
+    <!-- =================================
+         CARD 1: OVERDUE BY PRODUCT
+    ================================== -->
+
+    <article class="summary-card card">
+
+        <div class="summary-card-header">
+
+            <h2 class="summary-title">
+                Overdue by product
+            </h2>
+
+            <span
+                class="summary-total"
+                id="productOverdueSummary"
+            >
+                Loading...
+            </span>
+
+        </div>
+
+
+        <!-- PRODUCT CHART -->
+        <div
+            class="product-overdue-list"
+            id="productOverdueList"
+        >
+
+            <p class="summary-loading">
+                Loading product data...
+            </p>
+
+        </div>
+
+
+        <!-- INSIGHT -->
+        <p
+            class="product-insight"
+            id="productOverdueInsight"
+        >
+        </p>
+
+    </article>
+
+
+    <!-- =================================
+         CARD 2: QUICK ACTIONS
+    ================================== -->
+
+    <article class="summary-card card">
+
+        <div class="summary-card-header">
+
+            <h2 class="summary-title">
+                Quick actions
+            </h2>
+
+        </div>
+
+
+        <div class="quick-actions-list">
+
+
+            <!-- ACTION 1 -->
+            <div class="quick-action-item">
+
+                <div class="quick-action-icon">
+                    <i class="fa-regular fa-message"></i>
+                </div>
+
+                <div class="quick-action-content">
+
+                    <h3>Send payment links</h3>
+
+                    <p>
+                        SMS or WhatsApp to all
+                        <span id="quickOverdueCount">—</span>
+                        overdue customers
+                    </p>
+
+                </div>
+
+                <i class="fa-solid fa-chevron-right quick-action-arrow"></i>
+
+            </div>
+
+
+            <!-- ACTION 2 -->
+            <div class="quick-action-item">
+
+                <div class="quick-action-icon">
+                    <i class="fa-regular fa-calendar-days"></i>
+                </div>
+
+                <div class="quick-action-content">
+
+                    <h3>Schedule a call campaign</h3>
+
+                    <p>
+                        Let the agent call overdue customers
+                        at a set time
+                    </p>
+
+                </div>
+
+                <i class="fa-solid fa-chevron-right quick-action-arrow"></i>
+
+            </div>
+
+
+            <!-- ACTION 3 -->
+            <div class="quick-action-item">
+
+                <div class="quick-action-icon">
+                    <i class="fa-regular fa-file-lines"></i>
+                </div>
+
+                <div class="quick-action-content">
+
+                    <h3>Download collection report</h3>
+
+                    <p>
+                        Balances, call outcomes and promises as CSV
+                    </p>
+
+                </div>
+
+                <i class="fa-solid fa-chevron-right quick-action-arrow"></i>
+
+            </div>
+
+
+        </div>
+
+    </article>
+
+</section>
+
+</main>
 </body>
 </html>

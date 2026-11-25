@@ -1,0 +1,803 @@
+/* ==============================
+   LIVE CALL MAIN LAYOUT
+================================ */
+
+/* LIVE CALL LAYOUT */
+
+.call-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(400px, 1fr) 300px;
+    gap: 20px;
+    max-width: 1600px;
+    margin: 24px auto;
+    padding: 0 80px;
+
+    align-items: start;
+}
+
+.customer-panel,
+.conversation-panel,
+.scripts-panel {
+    min-width: 0;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+    .call-layout {
+        grid-template-columns: 240px minmax(0, 1fr);
+        padding: 0 30px;
+        gap: 16px;
+    }
+
+    .scripts-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+    .call-layout {
+        grid-template-columns: 1fr;
+        padding: 0 16px;
+        margin: 16px auto;
+        gap: 16px;
+    }
+
+    .customer-panel,
+    .conversation-panel,
+    .scripts-panel {
+        grid-column: 1;
+        width: 100%;
+    }
+}
+
+/* ==============================
+   CUSTOMER INFORMATION CARD
+================================ */
+
+.customer-card {
+    width: 100%;
+    padding: 18px;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Customer Profile */
+
+.customer-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.customer-avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #E8EEF5;
+    color: var(--color-ink);
+
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.customer-profile h3 {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.customer-profile p {
+    font-size: 11px;
+    color: var(--color-muted);
+}
+
+.btn:hover{
+    background-color: #b1f3ed;
+    border: 1px solid var(--color-teal);
+    color: var(--color-teal);
+}
+
+
+/* Loan Badge */
+
+.loan-badge {
+    display: inline-flex;
+    padding: 5px 10px;
+
+    background: var(--color-page);
+    color: var(--color-secondary);
+
+    border-radius: var(--radius-chip);
+    font-size: 11px;
+    font-weight: 600;
+
+    margin-bottom: 16px;
+}
+
+/* Outstanding and Overdue */
+
+.amount-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.amount-box {
+    min-width: 0;
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    background: var(--color-page);
+    border-radius: 10px;
+}
+
+.amount-box h3 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.overdue-box {
+    background: var(--color-amber-light);
+}
+
+.overdue-box h3 {
+    color: var(--color-amber);
+}
+
+/* Overdue Progress */
+
+.overdue-progress {
+    margin-top: 14px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+
+    background: var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+
+    background: var(--color-amber-mark);
+    border-radius: 10px;
+}
+
+.overdue-progress span {
+    display: block;
+    margin-top: 7px;
+
+    font-size: 10px;
+    color: var(--color-secondary);
+}
+
+
+/* ==============================
+   DURING THIS CALL
+================================ */
+
+.call-actions {
+    margin-top: 14px;
+    padding: 18px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.call-actions h3 {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.call-actions .btn {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 44px;
+}
+
+
+/* =========================================
+   LIVE CALL CARD
+========================================= */
+
+.live-call-card {
+    background: var(--color-ink);
+    color: var(--color-surface);
+    border-radius: var(--radius-card);
+    padding: 20px 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 18px;
+    align-items: center;
+    min-width: 0;
+}
+
+/* LIVE STATUS + TIMER */
+
+.live-call-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
+}
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: var(--radius-chip);
+    background: rgba(15, 118, 110, 0.25);
+    color: #5EEAD4;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+#callTimer {
+    font-family: var(--font-heading);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+}
+
+/* AGENT STATUS */
+
+#status {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 400;
+    color: #CBD5E1;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* =========================================
+   AUDIO WAVEFORM
+========================================= */
+
+.waveform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 46px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.waveform span {
+    display: block;
+    width: 3px;
+    flex-shrink: 0;
+    height: 8px;
+    background: #2DD4BF;
+    border-radius: 4px;
+}
+
+/* Different bar heights */
+
+.waveform span:nth-child(5n + 1) {
+    height: 13px;
+}
+
+.waveform span:nth-child(5n + 2) {
+    height: 25px;
+}
+
+.waveform span:nth-child(5n + 3) {
+    height: 35px;
+}
+
+.waveform span:nth-child(5n + 4) {
+    height: 18px;
+}
+
+.waveform span:nth-child(5n) {
+    height: 29px;
+}
+
+/* Animation during an active call */
+
+.waveform.active span {
+    animation: waveAnimation 0.9s ease-in-out infinite alternate;
+}
+
+.waveform.active span:nth-child(2n) {
+    animation-delay: 0.2s;
+}
+
+.waveform.active span:nth-child(3n) {
+    animation-delay: 0.4s;
+}
+
+.waveform.active span:nth-child(5n) {
+    animation-delay: 0.6s;
+}
+
+@keyframes waveAnimation {
+    from {
+        transform: scaleY(0.35);
+    }
+
+    to {
+        transform: scaleY(1);
+    }
+}
+
+/* =========================================
+   CALL CONTROLS
+========================================= */
+
+.call-controls {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 3px;
+}
+
+/* Shared call button styles */
+
+.call-controls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 9px 14px;
+    border-radius: var(--radius-button);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.call-controls button[hidden]{
+        display: none;
+}
+
+/* MUTE BUTTON */
+
+.mute-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.mute-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* START CALL BUTTON */
+
+#startBtn {
+    background: var(--color-teal);
+    color: #FFFFFF;
+    border: none;
+}
+
+#startBtn:hover:not(:disabled) {
+    background: #0B625B;
+}
+
+/* END CALL BUTTON */
+
+#stopBtn {
+    background: var(--color-danger);
+    color: #FFFFFF;
+    border: none;
+}
+
+#stopBtn:hover:not(:disabled) {
+    background: #A72D18;
+}
+
+/* DISABLED BUTTONS */
+
+.call-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 600px) {
+    .live-call-card {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .waveform {
+        justify-content: flex-start;
+    }
+
+    .call-controls {
+        flex-wrap: wrap;
+    }
+}
+
+
+
+/* =========================================
+   CONVERSATION TRANSCRIPT CARD
+========================================= */
+
+.transcript-card {
+    padding: 18px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+
+.transcript-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.transcript-header h3 {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 5px;
+}
+
+/* HEADER ACTIONS */
+
+.transcript-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.transcript-actions .btn {
+    padding: 7px 10px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+/* TRANSCRIPT BODY */
+
+.transcript-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 4px;
+    min-height: 300px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+/* SCROLLBAR */
+
+.transcript-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+.transcript-body::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 10px;
+}
+
+
+/* MESSAGE TIMESTAMP */
+
+.message-time {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--color-muted);
+}
+
+/* ENGLISH TRANSLATION */
+
+.english-translation {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-secondary);
+    padding: 0 4px;
+}
+
+/* HIDE TRANSLATION */
+
+.english-translation[hidden] {
+    display: none;
+}
+
+
+/* MESSAGE COMMON */
+
+.message {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-width: 85%;
+    min-width: 0;
+}
+
+.message strong {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+/* MESSAGE TEXT */
+
+.message p {
+    font-family: var(--font-hindi);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.8;
+    padding: 10px 13px;
+    border-radius: 12px;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* AGENT MESSAGE - LEFT */
+
+.agent-message {
+    align-self: flex-start;
+}
+
+.agent-message p {
+    background: var(--color-page);
+    color: var(--color-text);
+    border-top-left-radius: 3px;
+}
+
+/* CUSTOMER MESSAGE - RIGHT */
+
+.customer-message {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.customer-message p {
+    background: var(--color-teal-light);
+    color: var(--color-ink);
+    border-top-right-radius: 3px;
+}
+
+
+/* INTENT TAGS */
+
+.intent-tag {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 4px 8px;
+    margin-top: 3px;
+
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 600;
+
+    color: var(--color-amber);
+    background: var(--color-amber-light);
+    border-radius: var(--radius-chip);
+}
+
+/* Customer intent tag alignment */
+
+.customer-message .intent-tag {
+    align-self: flex-end;
+}
+
+
+/* COPIED / ASKED QUESTION */
+
+.script-question.copied {
+    background: var(--color-teal-light);
+    border-radius: 6px;
+}
+
+.script-question.copied .copy-icon {
+    color: var(--color-teal);
+}
+
+.script-question.copied .copy-icon i {
+    font-weight: 900;
+}
+
+/* Smooth icon transition */
+
+.copy-icon i {
+    transition: color 0.2s ease;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 600px) {
+    .transcript-card {
+        padding: 14px;
+    }
+
+    .transcript-header {
+        flex-wrap: wrap;
+    }
+
+    .transcript-actions {
+        width: 100%;
+    }
+
+    .transcript-body {
+        min-height: 250px;
+    }
+
+    .message {
+        max-width: 95%;
+    }
+}
+
+
+
+/* =================================
+   TEST SCRIPTS PANEL
+================================= */
+
+.scripts-panel {
+    padding: 14px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* PANEL HEADER */
+
+.scripts-header {
+    margin-bottom: 14px;
+}
+
+.scripts-header h3 {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+
+.scripts-header p {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--color-muted);
+    line-height: 1.4;
+}
+
+/* SCRIPT GROUP */
+
+.script-group {
+    margin-bottom: 12px;
+}
+
+.script-group h4 {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    color: var(--color-muted);
+    margin-bottom: 5px;
+}
+
+/* QUESTION ROW */
+
+.script-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    width: 100%;
+    min-width: 0;
+    padding: 7px 5px;
+
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.script-question:hover {
+    background: var(--color-page);
+    border-radius: 6px;
+}
+
+/* QUESTION TEXT */
+
+.question-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+/* HINDI QUESTION */
+
+.question-content strong {
+    font-family: var(--font-hindi);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* ENGLISH TRANSLATION */
+
+.question-content small {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--color-muted);
+    line-height: 1.4;
+}
+
+/* COPY ICON */
+
+.copy-icon {
+    flex-shrink: 0;
+    color: var(--color-muted);
+    font-size: 12px;
+    padding: 3px;
+}
+
+.script-question:hover .copy-icon {
+    color: var(--color-teal);
+}
+
+/* LAST QUESTION IN GROUP */
+
+.script-question:last-child {
+    border-bottom: none;
+}
+
+/* LAST SCRIPT GROUP */
+
+.script-group:last-child {
+    margin-bottom: 0;
+}
+
+

@@ -1,0 +1,122 @@
+
+/* ==============================
+   GLOBAL RESET
+================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--color-page);
+    color: var(--color-text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ==============================
+   COMMON BUTTONS
+================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 10px 16px;
+    min-height: 40px;
+
+    border-radius: var(--radius-button);
+    font-weight: 600;
+    font-size: 13px;
+
+    transition: 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--color-teal);
+    color: white;
+}
+
+.btn-primary:hover {
+    filter: brightness(0.92);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-page);
+}
+
+/* ==============================
+   COMMON CARD
+================================ */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+}
+
+/* ==============================
+   COMMON BADGES
+================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: var(--radius-chip);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: var(--color-teal-light);
+    color: var(--color-teal);
+}
+
+.badge-warning {
+    background: var(--color-amber-light);
+    color: var(--color-amber);
+}
+
+/* ==============================
+   RESPONSIVE HELPERS
+================================ */
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+
+
