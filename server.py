@@ -27,7 +27,7 @@ app.add_middleware(
         "http://localhost:5500",
         "http://localhost:8000",
         "https://payment-collection-agent.vercel.app",
-        "https://payment-collection-agent-10l8lzzmj-ayushrawat001s-projects.vercel.app"
+        "https://payment-collection-agent-6w0qi9plg-ayushrawat001s-projects.vercel.app"
     ],
     allow_credentials=False,
     allow_methods=["*"],
