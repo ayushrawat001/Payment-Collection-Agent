@@ -552,6 +552,7 @@
                 audioSocket = new WebSocket(
                     `${wsProtocol}//${backendHost}/ws/audio?cust_id=${encodeURIComponent(cust_id)}`
                 );
+                audioSocket.binaryType = "arraybuffer";
                 
                 await new Promise((resolve, reject) => {
                     audioSocket.onopen = resolve;
@@ -586,52 +587,182 @@
                     }
                 };
 
+                let mediaSource = null;
+                let sourceBuffer = null;
+                let audioQueue = [];
+                let streamEnded = false;
+                let streamGeneration = 0;
+                let currentObjectUrl = null;
+
+                function resetStreamPlayback() {
+                    streamGeneration++;
+
+                    audioQueue = [];
+                    streamEnded = false;
+                    sourceBuffer = null;
+                    mediaSource = null;
+
+                    player.pause();
+                    player.removeAttribute("src");
+                    player.load();
+
+                    if (currentObjectUrl) {
+                        URL.revokeObjectURL(currentObjectUrl);
+                        currentObjectUrl = null;
+                    }
+                }
+
+                function startStreamPlayback() {
+                    resetStreamPlayback();
+
+                    const generation = streamGeneration;
+
+                    if (!MediaSource.isTypeSupported("audio/mpeg")) {
+                        console.error("MP3 MediaSource playback is not supported.");
+                        return;
+                    }
+
+                    mediaSource = new MediaSource();
+
+                    currentObjectUrl = URL.createObjectURL(mediaSource);
+                    player.src = currentObjectUrl;
+
+                    mediaSource.addEventListener("sourceopen", () => {
+                        if (generation !== streamGeneration) return;
+
+                        sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+                        sourceBuffer.mode = "sequence";
+
+                        sourceBuffer.addEventListener("updateend", () => {
+
+                            // Start playback when audio data becomes available
+                            if (player.paused && player.readyState >= 2) {
+                                player.play().catch(error => {
+                                    console.error("Audio playback error:", error);
+                                });
+                            }
+
+                            playNextChunk();
+                        });
+
+                        playNextChunk();
+                    });
+                }
+
+                function playNextChunk() {
+                    if (!sourceBuffer || sourceBuffer.updating) return;
+
+                    if (audioQueue.length > 0) {
+                        const chunk = audioQueue.shift();
+
+                        sourceBuffer.appendBuffer(chunk);
+                    }
+                    else if (
+                        streamEnded &&
+                        mediaSource &&
+                        mediaSource.readyState === "open"
+                    ) {
+                        mediaSource.endOfStream();
+                    }
+                }
+
+                function receiveAudioChunk(chunk) {
+                    if (!mediaSource || mediaSource.readyState === "closed") return;
+
+                    audioQueue.push(chunk);
+                    playNextChunk();
+                }                
                 
-                
+
                 audioSocket.onmessage = async (event) => {
+
+                    // 1. Handle binary MP3 audio chunks
+                    if (event.data instanceof ArrayBuffer) {
+                        receiveAudioChunk(event.data);
+                        return;
+                    }
+
+                    // 2. Handle JSON messages
                     if (event.data === "chunk_received") {
                         return;
                     }
 
                     const result = JSON.parse(event.data);
 
+                    // Call started
                     if (result.type === "call_started") {
                         callId = result.call_id;
                         return;
                     }
 
+                    // Customer transcript
                     if (result.type === "customer_transcript") {
                         addMessage("customer", result.transcript);
                         return;
                     }
 
+                    // Customer interrupts the agent
                     if (result.type === "speech_started") {
+                        resetStreamPlayback();
                         player.pause();
                         player.currentTime = 0;
                         return;
                     }
-                    if (!result.answer || !result.audio_base64) {
+
+                    // 3. Streaming response completed
+                    if (result.type === "agent_audio_end") {
+                        streamEnded = true;
+                        playNextChunk();
                         return;
                     }
-                    if (result.transcript) {
-                        addMessage("customer", result.transcript);
+
+                    // Streaming error
+                    if (result.type === "agent_audio_error") {
+                        console.error("TTS streaming failed.");
+                        return;
                     }
-                    addMessage("agent", result.answer);
 
-                    const binary = atob(result.audio_base64);
+                    // 4. Normal LLM response
+                    if (result.type === "agent_response") {
 
-                    const bytes = Uint8Array.from(
-                        binary,
-                        character => character.charCodeAt(0)
-                    );
+                        if (result.transcript) {
+                            addMessage("customer", result.transcript);
+                        }
 
-                    const responseBlob = new Blob([bytes], {
-                        type: result.audio_mime_type
-                    });
+                        addMessage("agent", result.answer);
 
-                    player.src = URL.createObjectURL(responseBlob);
-                    await player.play();
-                };  
+                        // Prepare a fresh MediaSource for this response
+                        startStreamPlayback();
+                        return;
+                    }
+
+                    // 5. Opening greeting and identity confirmation
+                    if (result.type === "agent_message") {
+
+                        if (!result.answer || !result.audio_base64) {
+                            return;
+                        }
+
+                        addMessage("agent", result.answer);
+
+                        const binary = atob(result.audio_base64);
+
+                        const bytes = Uint8Array.from(
+                            binary,
+                            character => character.charCodeAt(0)
+                        );
+
+                        const responseBlob = new Blob([bytes], {
+                            type: result.audio_mime_type
+                        });
+
+                        player.src = URL.createObjectURL(responseBlob);
+
+                        await player.play();
+                        return;
+                    }
+                };
+
 
                 
 

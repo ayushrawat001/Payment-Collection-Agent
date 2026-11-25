@@ -4,10 +4,19 @@ import numpy as np
 import io
 import asyncio
 import uuid
+import time
+import threading
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException,Form, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from voice_agent import process_audio,generate_opening_audio,transcribe_audio,classify_identity,generate_speech_response
+from voice_agent import (
+    process_audio,
+    generate_opening_audio,
+    transcribe_audio,
+    classify_identity,
+    generate_speech_response,
+    stream_speech_response
+)
 from silero_vad import load_silero_vad
 from scipy.io import wavfile
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,6 +47,55 @@ app.add_middleware(
 CUSTOMER_FILE = Path(__file__).parent/"temp_customers.json"
 
 call_kpis= {}
+
+async def stream_tts_background(websocket, answer, call_id, send_lock, stop_event):
+
+    loop = asyncio.get_running_loop()
+    tts_start = time.perf_counter()
+
+    async def send_audio_chunk(chunk):
+        async with send_lock:
+            await websocket.send_bytes(chunk)
+
+    def generate_and_send():
+        for chunk in stream_speech_response(answer):
+
+            if stop_event.is_set():
+                break
+
+            future = asyncio.run_coroutine_threadsafe(
+                send_audio_chunk(chunk),
+                loop
+            )
+            future.result()
+
+    try:
+        await asyncio.to_thread(generate_and_send)
+
+        # If the customer interrupted, don't mark the stream as completed
+        if stop_event.is_set():
+            return
+
+        tts_latency = time.perf_counter() - tts_start
+
+        call_kpis[call_id]["tts"].append(tts_latency)
+
+        async with send_lock:
+            await websocket.send_json({
+                "type": "agent_audio_end",
+                "tts_latency": tts_latency
+            })
+    except Exception as error:
+        print("Streaming TTS error:", repr(error))
+
+        if not stop_event.is_set():
+            try:
+                async with send_lock:
+                    await websocket.send_json({
+                        "type": "agent_audio_error"
+                    })
+            except Exception:
+                pass
 
 
 @app.get("/api/customers/{cust_id}")
@@ -157,6 +215,8 @@ def get_kpi(call_id:str):
 @app.websocket("/ws/audio")
 async def audio_websocket(websocket: WebSocket, cust_id:str):
     await websocket.accept()
+    send_lock = asyncio.Lock()
+    active_tts_stop = None
     call_id = str(uuid.uuid4())
 
     call_kpis[call_id] = {
@@ -219,7 +279,10 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                     if not speech_started:
                         speech_started = True
                         print(speech_prob," audible")
-                        await websocket.send_json({"type": "speech_started"})
+                        if active_tts_stop is not None:
+                            active_tts_stop.set()
+                        async with send_lock:
+                            await websocket.send_json({"type": "speech_started"})       
 
                     silence_chunks = 0
                 
@@ -268,10 +331,11 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                                 customer_message
                             )
 
-                            await websocket.send_json({
-                                "type": "customer_transcript",
-                                "transcript": customer_message
-                            })
+                            async with send_lock:
+                                await websocket.send_json({
+                                    "type": "customer_transcript",
+                                    "transcript": customer_message
+                                })
                             print("Identity result:", identity_result)
 
                             if identity_result == "true":
@@ -282,11 +346,11 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                                     generate_speech_response,
                                     opening_text
                                 )
-
-                                await websocket.send_json({
-                                    "type": "agent_message",
-                                    **opening_result
-                                })
+                                async with send_lock:
+                                    await websocket.send_json({
+                                        "type": "agent_message",
+                                        **opening_result
+                                    })
 
                                 utterance_buffer = []
                                 speech_started = False
@@ -301,10 +365,11 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                                     closing_text
                                 )
 
-                                await websocket.send_json({
-                                    "type": "agent_message",
-                                    **closing_result
-                                })
+                                async with send_lock:
+                                    await websocket.send_json({
+                                        "type": "agent_message",
+                                        **closing_result
+                                    })
                                 break
 
                             else:
@@ -316,10 +381,11 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                                         customer
                                     )
 
-                                    await websocket.send_json({
-                                        "type": "agent_message",
-                                        **opening_result
-                                    })
+                                    async with send_lock:
+                                        await websocket.send_json({
+                                            "type": "agent_message",
+                                            **opening_result
+                                        })
                                 else:
                                     retry_text = (
                                         f"माफ़ कीजिए, क्या आप {customer.get('name', 'ग्राहक')} "
@@ -332,10 +398,11 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                                         retry_text
                                     )
 
-                                    await websocket.send_json({
-                                        "type": "agent_message",
-                                        **closing_result
-                                    })
+                                    async with send_lock:
+                                        await websocket.send_json({
+                                            "type": "agent_message",
+                                            **closing_result
+                                        })
                                     break
                                 utterance_buffer = []
                                 speech_started = False
@@ -348,15 +415,34 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
                             process_audio,
                             wav_bytes,
                             audio_extension=".wav",
-                            customer=customer
+                            customer=customer,
+                            stream_tts=True
                         )
 
                         if result is not None:
                             call_kpis[call_id]["stt"].append(result["latency"]["stt"])
                             call_kpis[call_id]["llm"].append(result["latency"]["llm"])
-                            call_kpis[call_id]["tts"].append(result["latency"]["tts"])
                             call_kpis[call_id]["total_responses"] += 1
-                            await websocket.send_json(result)
+
+                            # Send transcript and text response first
+                            async with send_lock:
+                                await websocket.send_json({
+                                    "type": "agent_response",
+                                    **result
+                                })
+
+                            # Start TTS generation in the background
+                            active_tts_stop = threading.Event()
+
+                            tts_task = asyncio.create_task(
+                                stream_tts_background(
+                                    websocket,
+                                    result["answer"],
+                                    call_id,
+                                    send_lock,
+                                    active_tts_stop
+                                )
+                            )
 
                         utterance_buffer = []
                         speech_started = False
@@ -368,11 +454,15 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
             if len(audio_chunk) % 2 != 0:
                 print("Invalid PCM chunk: odd number of bytes")
                 continue
-
-            await websocket.send_text("chunk_received")
+            async with send_lock:
+                await websocket.send_text("chunk_received")
 
     except WebSocketDisconnect:
         print("Browser audio WebSocket disconnected")
+
+    finally:
+        if active_tts_stop is not None:
+            active_tts_stop.set()
 
 app.mount(
     "/",

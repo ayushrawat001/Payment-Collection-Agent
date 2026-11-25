@@ -60,7 +60,15 @@ def generate_speech_response(text):
         "audio_mime_type": "audio/wav"
     }
 
-
+def stream_speech_response(text):
+    return client.text_to_speech.convert_stream(
+        model="bulbul:v3",
+        text=text,
+        language_code="hi-IN",
+        speaker="ritu",
+        output_audio_codec="mp3"
+    )
+    
 def classify_identity(customer_message):
     prompt = f"""
     Classify the customer's response to this question:
@@ -133,7 +141,7 @@ def transcribe_audio(audio_bytes, audio_extension):
             os.remove(audio_path)
 
 
-def process_audio(audio_bytes, audio_extension=".webm",customer = None):
+def process_audio(audio_bytes, audio_extension=".webm",customer = None, stream_tts=False):
 
     messages = [
     {
@@ -357,15 +365,27 @@ Your goal is to conduct a respectful, concise, accurate payment collection conve
             raise
 
         # 4. Generate speech from the answer
+
+        if stream_tts:
+            return {
+                "transcript": customer_message,
+                "answer": answer,
+                "latency": {
+                    "stt": stt_latency,
+                    "llm": llm_latency
+                }
+            }
+
         tts_start = time.perf_counter()
+
         tts_response = client.text_to_speech.convert(
             model="bulbul:v3",
             text=answer,
             language_code="hi-IN",
             speaker="ritu"
         )
-        tts_latency = time.perf_counter() - tts_start
 
+        tts_latency = time.perf_counter() - tts_start
         audio_base64 = tts_response.audios[0]
 
         # 5. Return data to the webpage
