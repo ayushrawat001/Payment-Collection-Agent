@@ -2,6 +2,7 @@ import os
 import base64
 import tempfile
 import time
+import json
 from dotenv import load_dotenv
 from pathlib import Path
 from sarvamai import SarvamAI
@@ -23,6 +24,51 @@ with open(BASE_DIR / "generic_payment_policy.txt",
 client = SarvamAI(
     api_subscription_key=os.getenv("SARVAM_API_KEY")
 )
+
+
+def translate_messages(texts):
+    prompt = f"""
+    Translate the following conversation messages into natural English.
+
+    Preserve the original order.
+    Keep the meaning accurate.
+    Do not add explanations.
+
+    Return ONLY a valid JSON array of translated strings.
+    The array must contain exactly {len(texts)} items.
+
+    Messages:
+    {json.dumps(texts, ensure_ascii=False)}
+    """
+
+    response = client.chat.completions(
+        model="sarvam-105b-conversations",
+        max_tokens=1000,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a professional Hindi-to-English translator. Return valid JSON only."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    )
+
+    result = response.choices[0].message.content.strip()
+
+    # Handle possible Markdown code fences
+    if result.startswith("```"):
+        result = result.replace("```json", "").replace("```", "").strip()
+
+    translations = json.loads(result)
+
+    if not isinstance(translations, list) or len(translations) != len(texts):
+        raise ValueError("Translation count does not match message count.")
+
+    return translations
+
 
 def create_opening_message(customer):
         name = customer["name"]

@@ -397,6 +397,8 @@
         let source;
         let processorNode;
         let callId = null;
+        let conversationMessages = [];
+        let currentCustomer = null;
         const BACKEND_URL = "https://payment-collection-agent.onrender.com";
 
 
@@ -406,6 +408,8 @@
         const player = document.getElementById("player");
         const transcript = document.getElementById("transcript");
         const showEnglishBtn = document.getElementById("showEnglishBtn");
+        const muteBtn = document.getElementById("muteBtn");
+        let isMuted = false;
 
         // Get customer ID from the URL
         const params = new URLSearchParams(window.location.search);
@@ -443,6 +447,7 @@
                         customer.detail || "Could not load customer."
                     );
                 }
+                currentCustomer = customer
                 
                 // Calculate overdue percentage
                 const outstanding = Number(customer.outstanding) || 0;
@@ -758,7 +763,13 @@
 
                         player.src = URL.createObjectURL(responseBlob);
 
-                        await player.play();
+                        try {
+                            await player.play();
+                        } catch (error) {
+                            if (error.name !== "AbortError") {
+                                console.error("Agent audio playback error:", error);
+                            }
+                        }
                         return;
                     }
                 };
@@ -774,6 +785,14 @@
                 startBtn.hidden = true;
                 muteBtn.hidden = false;
                 stopBtn.hidden = false;
+
+                muteBtn.disabled = false;
+                isMuted = false;
+
+                muteBtn.innerHTML =
+                    '<i class="fa-solid fa-microphone"></i> Mute';
+
+                muteBtn.classList.remove("muted");
 
                 // Update button states
                 startBtn.disabled = true;
@@ -827,6 +846,9 @@
             // Restore button states
             startBtn.disabled = false;
             stopBtn.disabled = true;
+            muteBtn.disabled = true;
+            isMuted = false;
+            muteBtn.classList.remove("muted");
 
             status.textContent = "Call ended.";
             stopCallTimer();
@@ -834,11 +856,34 @@
             document.getElementById("waveform").classList.remove("active");
 
             document.getElementById("callTimer").textContent = "00:00";
+            // Save call details before navigating
+            const endedCallData = {
+                callId: callId,
+                customer: currentCustomer,
+                duration: callSeconds,
+                messages: conversationMessages
+            };
+            console.log("Messages being saved:", conversationMessages);
+            sessionStorage.setItem(
+                "endedCallData",
+                JSON.stringify(endedCallData)
+            );
+            isMuted = false;
+            muteBtn.classList.remove("muted");
+            // Navigate to call-ended page
+            window.location.href =
+                `/call-ended.html?cust_id=${encodeURIComponent(cust_id)}`;            
         }
 
 
  
         function addMessage(role, text, englishText = "", intentTag = "") {
+            console.log("Message captured:", role, text);
+            conversationMessages.push({
+                role: role,
+                text: text,
+                time: callSeconds
+            });
             const message = document.createElement("div");
             message.className = `message ${role}-message`;
 
@@ -889,66 +934,113 @@
             window.location.href = "/";
         }
 
-        stopBtn.addEventListener("click", async function () {
-            const panel = document.getElementById("scriptsContent");
+        // MUTE / UNMUTE
+        muteBtn.addEventListener("click", () => {
+            if (!stream) return;
 
-            panel.innerHTML = "<h2>Loading KPIs...</h2>";
+            const audioTrack = stream.getAudioTracks()[0];
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/kpi/${callId}`);
+            if (!audioTrack) return;
 
-                if (!response.ok) {
-                    throw new Error("Failed to fetch KPIs");
-                }
+            isMuted = !isMuted;
+            audioTrack.enabled = !isMuted;
 
-                const data = await response.json();
-                console.log(data)
+            muteBtn.innerHTML = isMuted
+                ? '<i class="fa-solid fa-microphone-slash"></i> Unmute'
+                : '<i class="fa-solid fa-microphone"></i> Mute';
 
-                panel.innerHTML = `
-                    <h2>Payment Collection KPIs</h2>
-
-                    <div class="script">
-                        <h3>Average STT Latency</h3>
-                        <p>${data.stt_avg !== null ? data.stt_avg.toFixed(2) + " seconds" : "N/A"}</p>
-                    </div>
-
-                    <div class="script">
-                        <h3>Average LLM Latency</h3>
-                        <p>${data.llm_avg !== null ? data.llm_avg.toFixed(2) + " seconds" : "N/A"}</p>
-                    </div>
-
-                    <div class="script">
-                        <h3>Average TTS Latency</h3>
-                        <p>${data.tts_avg !== null ? data.tts_avg.toFixed(2) + " seconds" : "N/A"}</p>
-                    </div>
-                    <button id="backToScripts">Back to Scripts</button>
-                `;
-
-                document.getElementById("backToScripts").addEventListener("click", function () {
-                    location.reload();
-                });
-
-            } catch (error) {
-                panel.innerHTML = `
-                    <h2>Unable to Load KPIs</h2>
-                    <p>${error.message}</p>
-                    <button onclick="location.reload()">Back to Scripts</button>
-                `;
-            }
+            muteBtn.classList.toggle("muted", isMuted);
         });
 
-        showEnglishBtn.addEventListener("click", () => {
-            const translations = document.querySelectorAll(".english-translation");
+        
+        showEnglishBtn.addEventListener("click", async () => {
 
             const isShowing = showEnglishBtn.dataset.showing === "true";
 
-            translations.forEach(translation => {
-                translation.hidden = isShowing;
-            });
+            const messages = [
+                ...transcript.querySelectorAll(".message")
+            ];
 
-            showEnglishBtn.dataset.showing = String(!isShowing);
-            showEnglishBtn.textContent = isShowing ? "Show English" : "Hide English";
+            // Hide existing translations
+            if (isShowing) {
+                messages.forEach(message => {
+                    const translation = message.querySelector(".english-translation");
+
+                    if (translation) {
+                        translation.hidden = true;
+                    }
+                });
+
+                showEnglishBtn.dataset.showing = "false";
+                showEnglishBtn.textContent = "Show English";
+                return;
+            }
+
+            try {
+                showEnglishBtn.disabled = true;
+                showEnglishBtn.textContent = "Translating...";
+
+                // Find messages that have not been translated yet
+                const untranslatedMessages = messages.filter(message =>
+                    !message.querySelector(".english-translation")
+                );
+
+                if (untranslatedMessages.length > 0) {
+
+                    const originalTexts = untranslatedMessages.map(message =>
+                        message.querySelector("p").textContent
+                    );
+
+                    const response = await fetch(
+                        `${BACKEND_URL}/api/translate`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                messages: originalTexts
+                            })
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Translation request failed.");
+                    }
+
+                    const data = await response.json();
+
+                    untranslatedMessages.forEach((message, index) => {
+                        const translation = document.createElement("small");
+
+                        translation.className = "english-translation";
+                        translation.textContent = data.translations[index];
+
+                        message.appendChild(translation);
+                    });
+                }
+
+                // Display all translations
+                messages.forEach(message => {
+                    const translation = message.querySelector(".english-translation");
+
+                    if (translation) {
+                        translation.hidden = false;
+                    }
+                });
+
+                showEnglishBtn.dataset.showing = "true";
+                showEnglishBtn.textContent = "Hide English";
+
+            } catch (error) {
+                console.error("Translation error:", error);
+                alert("Unable to translate the conversation.");
+
+            } finally {
+                showEnglishBtn.disabled = false;
+            }
         });
+
 
 
 // TEST SCRIPT COPY FUNCTIONALITY

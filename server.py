@@ -15,11 +15,13 @@ from voice_agent import (
     transcribe_audio,
     classify_identity,
     generate_speech_response,
-    stream_speech_response
+    stream_speech_response,
+    translate_messages
 )
 from silero_vad import load_silero_vad
 from scipy.io import wavfile
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 
 FFMPEG_PATH = r"C:\Users\AA\MediaGet2\ffmpeg.exe"
@@ -212,6 +214,33 @@ def get_kpi(call_id:str):
     }
 
 
+
+class TranslationRequest(BaseModel):
+    messages: list[str]
+
+
+@app.post("/api/translate")
+async def translate_endpoint(payload: TranslationRequest):
+
+    try:
+        translations = await asyncio.to_thread(
+            translate_messages,
+            payload.messages
+        )
+
+        return {
+            "translations": translations
+        }
+
+    except Exception as error:
+        print("Translation error:", repr(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Translation failed."
+        )
+
+
 @app.websocket("/ws/audio")
 async def audio_websocket(websocket: WebSocket, cust_id:str):
     await websocket.accept()
@@ -274,8 +303,9 @@ async def audio_websocket(websocket: WebSocket, cust_id:str):
 
                 audio_tensor = torch.from_numpy(vad_chunk.copy())
                 speech_prob = model(audio_tensor, 16000).item()
+                print(f"VAD Probability: {speech_prob:.3f}")
 
-                if speech_prob >= 0.5:
+                if speech_prob >= 0.65:
                     if not speech_started:
                         speech_started = True
                         print(speech_prob," audible")

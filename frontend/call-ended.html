@@ -245,7 +245,7 @@
                 </button>
 
                 <button type="button" class="next-customer-btn" id="nextCustomerBtn">
-                    Call next: Priya Verma
+                    Loading next customer...
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
 
@@ -394,7 +394,7 @@
             <span>Average response time</span>
 
             <h2 id="averageResponseTime">
-                2.24<small>s</small>
+                N/A<small></small>
             </h2>
         </div>
 
@@ -418,7 +418,7 @@
                     <small>STT · hearing the customer</small>
                 </div>
 
-                <span class="latency-value">0.48 s</span>
+                <span class="latency-value" id="sttLatency">0.48 s</span>
 
             </div>
 
@@ -432,7 +432,7 @@
                     <small>LLM · writing the reply</small>
                 </div>
 
-                <span class="latency-value">1.12 s</span>
+                <span class="latency-value" id="llmLatency">1.12 s</span>
 
             </div>
 
@@ -446,7 +446,7 @@
                     <small>TTS · speaking the reply</small>
                 </div>
 
-                <span class="latency-value">0.64 s</span>
+                <span class="latency-value" id="ttsLatency">0.64 s</span>
 
             </div>
 
@@ -476,5 +476,305 @@
 </main>
 
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const savedData = sessionStorage.getItem("endedCallData");
+
+    if (!savedData) {
+        console.warn("No call data found.");
+        return;
+    }
+
+    const callData = JSON.parse(savedData);
+    const customer = callData.customer;
+
+    if (customer) {
+        document.getElementById("customerName").textContent =
+            customer.name;
+
+        document.getElementById("customerId").textContent =
+            `${customer.id} · ${customer.product}`;
+
+        document.getElementById("customerOutstanding").textContent =
+            "₹" + Number(customer.outstanding).toLocaleString("en-IN");
+
+        document.getElementById("customerOverdue").textContent =
+            "₹" + Number(customer.overdue_amt).toLocaleString("en-IN");
+
+        document.getElementById("customerBreadcrumb").textContent =
+            customer.name;
+
+        const initials = customer.name
+            .trim()
+            .split(/\s+/)
+            .slice(0, 2)
+            .map(part => part[0].toUpperCase())
+            .join("");
+
+        document.getElementById("customerAvatar").textContent = initials;
+    }
+
+    // Call duration
+    const minutes = Math.floor(callData.duration / 60);
+    const seconds = callData.duration % 60;
+
+    document.getElementById("callDuration").textContent =
+        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+    // Conversation transcript
+    const transcriptContainer =
+        document.getElementById("endedTranscript");
+
+    transcriptContainer.innerHTML = "";
+
+    callData.messages.forEach(message => {
+        const messageElement = document.createElement("div");
+        messageElement.className = "ended-transcript-message";
+
+        const header = document.createElement("div");
+        header.className = "ended-message-customer";
+
+        const role = document.createElement("strong");
+        role.textContent =
+            message.role === "agent" ? "Agent" : (customer?.name || "Customer");
+
+        const timestamp = document.createElement("span");
+        timestamp.className = "message-time";
+
+        const messageMinutes = Math.floor(message.time / 60);
+        const messageSeconds = message.time % 60;
+
+        timestamp.textContent =
+            `${String(messageMinutes).padStart(2, "0")}:${String(messageSeconds).padStart(2, "0")}`;
+
+        const text = document.createElement("p");
+        text.textContent = message.text;
+
+        header.append(role, timestamp);
+        messageElement.append(header, text);
+        transcriptContainer.appendChild(messageElement);
+    });
+
+    // Message count
+    document.getElementById("callMessageCount").textContent =
+        `${callData.messages.length} messages · Hindi`;
+
+    // Fetch actual call performance KPIs
+    async function loadCallPerformance() {
+        try {
+            const response = await fetch(
+                `https://payment-collection-agent.onrender.com/api/kpi/${callData.callId}`
+            );
+
+            if (!response.ok) {
+                throw new Error("Unable to fetch call KPIs");
+            }
+
+            const data = await response.json();
+
+            // Display individual latency values
+            document.getElementById("sttLatency").textContent =
+                data.stt_avg !== null
+                    ? `${data.stt_avg.toFixed(2)} s`
+                    : "N/A";
+
+            document.getElementById("llmLatency").textContent =
+                data.llm_avg !== null
+                    ? `${data.llm_avg.toFixed(2)} s`
+                    : "N/A";
+
+            document.getElementById("ttsLatency").textContent =
+                data.tts_avg !== null
+                    ? `${data.tts_avg.toFixed(2)} s`
+                    : "N/A";
+
+            // Average total response time
+            if (
+                data.stt_avg !== null &&
+                data.llm_avg !== null &&
+                data.tts_avg !== null
+            ) {
+                const total =
+                    data.stt_avg + data.llm_avg + data.tts_avg;
+
+                document.getElementById("averageResponseTime").innerHTML =
+                    `${total.toFixed(2)}<small>s</small>`;
+            }
+
+        } catch (error) {
+            console.error("KPI loading error:", error);
+        }
+    }
+
+    loadCallPerformance();
+
+    // =====================================
+    // 1. NAVIGATION BUTTONS
+    // =====================================
+
+    const currentCustomerId = customer?.id;
+    // Update the next customer button name
+    async function updateNextCustomerLabel() {
+        const nextBtn = document.getElementById("nextCustomerBtn");
+
+        try {
+            const response = await fetch(
+                "https://payment-collection-agent.onrender.com/api/customers"
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch customers");
+            }
+
+            const data = await response.json();
+            const customers = Array.isArray(data) ? data : data.customers;
+
+            const currentIndex = customers.findIndex(
+                item => String(item.id) === String(currentCustomerId)
+            );
+
+            const nextCustomer = customers[currentIndex + 1];
+
+            if (nextCustomer) {
+                nextBtn.innerHTML = `
+                    Call next: ${nextCustomer.name}
+                    <i class="fa-solid fa-arrow-right"></i>
+                `;
+            } else {
+                nextBtn.innerHTML = "No more customers";
+                nextBtn.disabled = true;
+            }
+
+        } catch (error) {
+            console.error("Next customer label error:", error);
+            nextBtn.textContent = "Unable to load next customer";
+        }
+    }
+
+    updateNextCustomerLabel();
+
+    function openCustomerCall(customerId) {
+        if (!customerId) {
+            alert("Customer ID is missing.");
+            return;
+        }
+
+        window.location.href =
+            `/agent.html?cust_id=${encodeURIComponent(customerId)}`;
+    }
+
+    // Call again
+    document.getElementById("callAgainBtn").addEventListener("click", () => {
+        openCustomerCall(currentCustomerId);
+    });
+
+    // Back to test scripts
+    document.getElementById("backToScriptsBtn").addEventListener("click", () => {
+        openCustomerCall(currentCustomerId);
+    });
+
+    // Call next
+    document.getElementById("nextCustomerBtn").addEventListener("click", async () => {
+        try {
+            const response = await fetch(
+                "https://payment-collection-agent.onrender.com/api/customers"
+            );
+
+            if (!response.ok) {
+                throw new Error("Could not load customers.");
+            }
+
+            const data = await response.json();
+            const customers = Array.isArray(data) ? data : data.customers;
+
+            const currentIndex = customers.findIndex(
+                item => String(item.id) === String(currentCustomerId)
+            );
+
+            if (currentIndex === -1 || currentIndex === customers.length - 1) {
+                alert("There are no more customers in the list.");
+                return;
+            }
+
+            const nextCustomer = customers[currentIndex + 1];
+
+            openCustomerCall(nextCustomer.id);
+
+        } catch (error) {
+            console.error("Next customer error:", error);
+            alert("Unable to load the next customer.");
+        }
+    });
+
+
+    // =====================================
+    // 2. TRANSCRIPT BUTTONS
+    // =====================================
+
+    const transcriptMessages = [
+        ...document.querySelectorAll(".ended-transcript-message")
+    ];
+
+    const showTranscriptBtn =
+        document.getElementById("showFullTranscriptBtn");
+
+    let transcriptExpanded = false;
+
+    // Initially show only the first 4 messages
+    transcriptMessages.forEach((message, index) => {
+        if (index >= 4) {
+            message.style.display = "none";
+        }
+    });
+
+    if (transcriptMessages.length <= 4) {
+        showTranscriptBtn.style.display = "none";
+    }
+
+    showTranscriptBtn.addEventListener("click", () => {
+        transcriptExpanded = !transcriptExpanded;
+
+        transcriptMessages.forEach((message, index) => {
+            if (index >= 4) {
+                message.style.display =
+                    transcriptExpanded ? "block" : "none";
+            }
+        });
+
+        showTranscriptBtn.textContent = transcriptExpanded
+            ? "Show less"
+            : `Show full transcript (${transcriptMessages.length} messages)`;
+    });
+
+
+    // Download transcript
+    document.getElementById("downloadFullTranscriptBtn")
+        .addEventListener("click", () => {
+
+            const transcriptText = transcriptMessages.map(message => {
+                const role = message.querySelector("strong")?.textContent || "";
+                const time = message.querySelector(".message-time")?.textContent || "";
+                const content = message.querySelector("p")?.textContent || "";
+
+                return `[${time}] ${role}: ${content}`;
+            }).join("\n\n");
+
+            const file = new Blob(
+                [transcriptText],
+                { type: "text/plain;charset=utf-8" }
+            );
+
+            const url = URL.createObjectURL(file);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `transcript-${currentCustomerId || "call"}.txt`;
+            link.click();
+
+            URL.revokeObjectURL(url);
+        });
+
+});
+</script>
 </body>
 </html>
